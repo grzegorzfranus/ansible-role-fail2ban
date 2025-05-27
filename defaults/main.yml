@@ -1,0 +1,178 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Default Variables
+# =============================================================================
+# This file defines default configuration values for the Fail2ban service.
+# These values can be overridden by setting them in your playbook or inventory.
+#
+# Sections:
+#   1. General Settings
+#   2. Logrotate Configuration
+#   3. Daemon Configuration
+#   4. Jail Configuration
+#   5. Ban Settings
+#   6. Email Notification Settings
+#   7. Custom Jail Configuration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. General Settings
+# -----------------------------------------------------------------------------
+# Role execution control and basic service configuration
+
+# Define which parts of the role to execute (Options: 'all', 'install', 'configure', 'logrotate', 'custom_jails', 'upgrade')
+fail2ban_role_action: "all"
+
+# Define role mode (configure for nftables/iptables)
+fail2ban_role_mode: ""
+
+# Enable/disable Fail2ban service on boot
+fail2ban_service_enabled: true
+
+# Enable/disable logrotate configuration for Fail2ban logs
+fail2ban_configure_logrotate: true
+
+# -----------------------------------------------------------------------------
+# 2. Logrotate Configuration
+# -----------------------------------------------------------------------------
+# Configuration for log rotation to manage Fail2ban log files
+fail2ban_logrotate_options:
+  # Directory where archived logs will be stored
+  archive_directory_path: "/var/log/fail2ban"
+  # How often to rotate logs (options: hourly, daily, weekly, monthly)
+  frequency: "daily"
+  # Number of rotated log files to keep
+  count: 30
+  # Don't error if log file is missing
+  missingok: true
+  # Compress rotated logs using gzip
+  compress: true
+  # Don't create new empty log file
+  nocreate: false
+  # Don't use copy+truncate - use default move
+  copytruncate: false
+  # Add date extension to rotated logs
+  dateext: true
+
+# -----------------------------------------------------------------------------
+# 3. Daemon Configuration
+# -----------------------------------------------------------------------------
+# Basic configuration parameters for the Fail2ban daemon
+
+# Set the socket file. This is used to communicate with the daemon.
+fail2ban_socket: "/var/run/fail2ban/fail2ban.sock"
+
+# Set the PID file. This is used to store the process ID of the fail2ban server.
+fail2ban_pidfile: "/var/run/fail2ban/fail2ban.pid"
+
+# Set the log level output. Options: CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+fail2ban_loglevel: "INFO"
+
+# Set the log target. This could be a file, SYSTEMD-JOURNAL, SYSLOG, STDERR or STDOUT.
+fail2ban_logtarget: "/var/log/fail2ban.log"
+
+# Syslog configuration for fail2ban
+fail2ban_syslog_target: "/var/log/fail2ban.log"
+fail2ban_syslog_facility: 1
+
+# -----------------------------------------------------------------------------
+# 4. Jail Configuration
+# -----------------------------------------------------------------------------
+# Common configuration for all jails
+
+# Default protocol to use in jail definitions
+fail2ban_protocol: "tcp"
+
+# "ignoreself" specifies whether the local resp. own IP addresses should be ignored
+# (default is true). Fail2ban will not ban a host which matches such addresses.
+fail2ban_ignoreself: "true"
+
+# "ignoreip" can be a list of IP addresses, CIDR masks or DNS hosts. Fail2ban
+# will not ban a host which matches an address in this list. Several addresses
+# can be defined using space (and/or comma) separator.
+fail2ban_ignoreip: 
+  - 127.0.0.1/8 
+  - ::1
+
+# -----------------------------------------------------------------------------
+# 5. Ban Settings
+# -----------------------------------------------------------------------------
+# Configuration for ban behavior and durations
+
+# "bantime" is the number of seconds that a host is banned.
+fail2ban_bantime: "10m"
+
+# A host is banned if it has generated "maxretry" during the last "findtime" seconds.
+fail2ban_findtime: "10m"
+
+# "maxretry" is the number of failures before a host get banned.
+fail2ban_maxretry: 5
+
+# "bantime.increment" allows to use database for searching of previously banned ip's to increase a
+# default ban time using special formula, default it is banTime * 1, 2, 4, 8, 16, 32...
+fail2ban_bantime_increment: true
+
+# "bantime.rndtime" is the max number of seconds using for mixing with random time
+# to prevent "clever" botnets calculate exact time IP can be unbanned again:
+fail2ban_bantime_rndtime: "30m"
+
+# "bantime.maxtime" is the max number of seconds using the ban time can reach (don't grows further)
+fail2ban_bantime_maxtime: "60d"
+
+# "bantime.factor" is a coefficient to calculate exponent growing of the formula or common multiplier,
+# default value of factor is 1 and with default value of formula, the ban time
+# grows by 1, 2, 4, 8, 16 ...
+fail2ban_bantime_factor: 2
+
+# Purge database entries after specified time period
+fail2ban_dbpurgeage: "30d"
+
+# -----------------------------------------------------------------------------
+# 6. Email Notification Settings
+# -----------------------------------------------------------------------------
+# Configuration for email notifications on ban/unban events
+
+# Enable/disable email notifications
+fail2ban_email_notification_enabled: false
+
+# Destination email address used solely for the interpolations in
+# jail.{conf,local,d/*} configuration files.
+fail2ban_destemail: "root@localhost"
+
+# Sender email address used solely for some actions
+fail2ban_sender: "root@{{ ansible_fqdn }}"
+
+# MTA for the mailing. Since 0.8.1 upstream fail2ban uses sendmail
+# Change mta configuration parameter to mail if you want to revert to conventional 'mail'.
+fail2ban_mta: "sendmail"
+
+# -----------------------------------------------------------------------------
+# 7. Custom Jail Configuration
+# -----------------------------------------------------------------------------
+# Define custom jail files to be created directly in jail.d directory
+# Each jail file will be named after the 'name' property and contain the specified content
+# Example:
+# fail2ban_custom_jail_files:
+#   - name: sshd-custom  # This will create /etc/fail2ban/jail.d/sshd-custom.conf
+#     content: |
+#       [sshd-custom]
+#       enabled = true
+#       filter = sshd
+#       port = ssh
+#       logpath = /var/log/auth.log
+#       maxretry = 3
+#       bantime = 3600
+#   - name: apache-badbots
+#     content: |
+#       [apache-badbots]
+#       enabled = true
+#       filter = apache-badbots
+#       port = http,https
+#       logpath = /var/log/apache2/access.log
+#       maxretry = 2
+fail2ban_custom_jail_files: []
+
+# Paths to directories containing custom jails/filters/actions files to copy
+fail2ban_custom_jails_path: "files/jail.d"
+fail2ban_custom_actions_path: "files/action.d"
+fail2ban_custom_filters_path: "files/filter.d"

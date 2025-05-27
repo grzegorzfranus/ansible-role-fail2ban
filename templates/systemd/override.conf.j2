@@ -1,0 +1,9 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+[Unit]
+Requires=nftables.service
+PartOf=nftables.service
+
+[Install]
+WantedBy=multi-user.target nftables.service

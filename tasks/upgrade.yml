@@ -1,0 +1,21 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Package Upgrade
+# =============================================================================
+# This file contains tasks for upgrading the Fail2ban package.
+# The upgrade ensures that the package is at the latest available version.
+#
+# Flow:
+#   1. Package Upgrade
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Package Upgrade
+# -----------------------------------------------------------------------------
+- name: Fail2ban | package | Upgrade Fail2ban package to the latest version
+  become: true
+  ansible.builtin.package:
+    name: "{{ fail2ban_package_name }}" 
+    state: latest
+    update_cache: true
+  notify: Fail2ban | handlers | Restart fail2ban service

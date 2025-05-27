@@ -1,0 +1,44 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Package Installation
+# =============================================================================
+# This file contains tasks for installing the Fail2ban package.
+# The installation ensures that the package is present and up to date.
+#
+# Flow:
+#   1. EPEL Installation (RedHat/Oracle/Rocky)
+#   2. Package Installation
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. EPEL Installation (RedHat/Oracle/Rocky)
+# -----------------------------------------------------------------------------
+- name: Fail2ban | package | Install EPEL package for Oracle Linux distribution
+  become: true
+  ansible.builtin.package:
+    name: "oracle-epel-release-el{{ ansible_distribution_major_version }}"
+    state: present
+    update_cache: true
+  when: >
+    ansible_os_family | lower == "redhat" and
+    ansible_facts['distribution'] | lower == "oraclelinux"
+
+- name: Fail2ban | package | Install EPEL package for RedHat family
+  become: true
+  ansible.builtin.package:
+    name: "epel-release"
+    state: present
+    update_cache: true
+  when: >
+    ansible_os_family | lower == "redhat" and
+    ansible_facts['distribution'] | lower != "oraclelinux"
+
+# -----------------------------------------------------------------------------
+# 2. Package Installation
+# -----------------------------------------------------------------------------
+- name: Fail2ban | package | Install Fail2ban package
+  become: true
+  ansible.builtin.package:
+    name: "{{ fail2ban_package_name }}"
+    state: present
+    update_cache: true

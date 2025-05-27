@@ -1,0 +1,43 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# =============================================================================
+# Log Rotation Configuration for Fail2ban Service
+# =============================================================================
+# This template manages the rotation of Fail2ban log files to prevent disk space issues
+# and maintain organized log archives.
+#
+# The configuration is controlled by the fail2ban_logrotate_options variable
+# =============================================================================
+
+# Define log file to rotate
+{{ fail2ban_logtarget }} {
+  # Rotation frequency (daily, weekly, monthly)
+  {{ fail2ban_logrotate_options.frequency }}
+  # Number of rotated files to keep
+  rotate {{ fail2ban_logrotate_options.count }}
+  # Don't error if log file is missing
+  missingok
+  # Compress rotated log files
+  compress
+  {% if fail2ban_logrotate_options.copytruncate | default(false) %}
+  # Copy and truncate instead of moving log files
+  copytruncate
+  {% endif %}
+  # Add date to name of archive log files
+  dateext
+  dateformat .%Y-%m-%d
+  # Archive log directory path
+  olddir {{ fail2ban_logrotate_options.archive_directory_path }}
+  # Run postrotate scripts if required
+  sharedscripts
+  # Execute commands after log rotation
+  postrotate
+    # Signal fail2ban to flush logs
+    /usr/bin/fail2ban-client flushlogs >/dev/null || true
+  endscript
+  {% if not fail2ban_logrotate_options.nocreate | default(false) %}
+  # Create empty log file with specific permissions
+  create 640 root root
+  {% endif %}
+}

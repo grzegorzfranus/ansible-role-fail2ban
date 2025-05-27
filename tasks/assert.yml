@@ -1,0 +1,160 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Assertions
+# =============================================================================
+# This file validates all variables defined in defaults/main.yml
+# It ensures that all variables exist and have the correct data types
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. General Settings
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate role action settings
+  assert:
+    that:
+      - fail2ban_role_action is defined
+      - fail2ban_role_action is string
+      - fail2ban_role_action in ["all", "install", "configure", "logrotate", "custom_jails", "upgrade"]
+    quiet: true
+
+- name: Fail2ban | assert | Validate role mode settings
+  assert:
+    that:
+      - fail2ban_role_mode is defined
+      - fail2ban_role_mode is string
+      - fail2ban_role_mode | length == 0 or fail2ban_role_mode in ["nftables", "iptables"]
+    quiet: true
+
+- name: Fail2ban | assert | Validate service enabled setting
+  assert:
+    that:
+      - fail2ban_service_enabled is defined
+      - fail2ban_service_enabled is boolean
+    quiet: true
+
+- name: Fail2ban | assert | Validate logrotate configuration setting
+  assert:
+    that:
+      - fail2ban_configure_logrotate is defined
+      - fail2ban_configure_logrotate is boolean
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 2. Logrotate Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate logrotate options
+  assert:
+    that:
+      - fail2ban_logrotate_options is defined
+      - fail2ban_logrotate_options is mapping
+      - fail2ban_logrotate_options.archive_directory_path is defined
+      - fail2ban_logrotate_options.archive_directory_path is string
+      - fail2ban_logrotate_options.frequency is defined
+      - fail2ban_logrotate_options.frequency is string
+      - fail2ban_logrotate_options.frequency in ["hourly", "daily", "weekly", "monthly"]
+      - fail2ban_logrotate_options.count is defined
+      - fail2ban_logrotate_options.count is number
+      - fail2ban_logrotate_options.missingok is defined
+      - fail2ban_logrotate_options.missingok is boolean
+      - fail2ban_logrotate_options.compress is defined
+      - fail2ban_logrotate_options.compress is boolean
+      - fail2ban_logrotate_options.nocreate is defined
+      - fail2ban_logrotate_options.nocreate is boolean
+      - fail2ban_logrotate_options.copytruncate is defined
+      - fail2ban_logrotate_options.copytruncate is boolean
+      - fail2ban_logrotate_options.dateext is defined
+      - fail2ban_logrotate_options.dateext is boolean
+    quiet: true
+  when: fail2ban_configure_logrotate | bool
+
+# -----------------------------------------------------------------------------
+# 3. Daemon Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate daemon configuration variables
+  assert:
+    that:
+      - fail2ban_socket is defined
+      - fail2ban_socket is string
+      - fail2ban_pidfile is defined
+      - fail2ban_pidfile is string
+      - fail2ban_loglevel is defined
+      - fail2ban_loglevel is string
+      - fail2ban_loglevel in ["CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
+      - fail2ban_logtarget is defined
+      - fail2ban_logtarget is string
+      - fail2ban_syslog_target is defined
+      - fail2ban_syslog_target is string
+      - fail2ban_syslog_facility is defined
+      - fail2ban_syslog_facility is number
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 4. Jail Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate jail configuration variables
+  assert:
+    that:
+      - fail2ban_protocol is defined
+      - fail2ban_protocol is string
+      - fail2ban_ignoreself is defined
+      - fail2ban_ignoreself is string
+      - fail2ban_ignoreself in ["true", "false"]
+      - fail2ban_ignoreip is defined
+      - fail2ban_ignoreip is sequence
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 5. Ban Settings
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate ban settings variables
+  assert:
+    that:
+      - fail2ban_bantime is defined
+      - fail2ban_bantime is string
+      - fail2ban_findtime is defined
+      - fail2ban_findtime is string
+      - fail2ban_maxretry is defined
+      - fail2ban_maxretry is number
+      - fail2ban_bantime_increment is defined
+      - fail2ban_bantime_increment is boolean
+      - fail2ban_bantime_rndtime is defined
+      - fail2ban_bantime_rndtime is string
+      - fail2ban_bantime_maxtime is defined
+      - fail2ban_bantime_maxtime is string
+      - fail2ban_bantime_factor is defined
+      - fail2ban_bantime_factor is number
+      - fail2ban_dbpurgeage is defined
+      - fail2ban_dbpurgeage is string
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 6. Email Notification Settings
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate email notification variables
+  assert:
+    that:
+      - fail2ban_email_notification_enabled is defined
+      - fail2ban_email_notification_enabled is boolean
+      - fail2ban_destemail is defined
+      - fail2ban_destemail is string
+      - fail2ban_sender is defined
+      - fail2ban_sender is string
+      - fail2ban_mta is defined
+      - fail2ban_mta is string
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 7. Custom Jail Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | assert | Validate custom jail configuration variables
+  assert:
+    that:
+      - fail2ban_custom_jail_files is defined
+      - fail2ban_custom_jail_files is sequence
+      - fail2ban_custom_jails_path is defined
+      - fail2ban_custom_jails_path is string
+      - fail2ban_custom_actions_path is defined
+      - fail2ban_custom_actions_path is string
+      - fail2ban_custom_filters_path is defined
+      - fail2ban_custom_filters_path is string
+    quiet: true

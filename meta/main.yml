@@ -1,0 +1,49 @@
+---
+galaxy_info:
+  role_name: fail2ban
+  author: Grzegorz Franus
+  namespace: grzegorzfranus
+  description: >
+    Ansible role to install, configure and manage Fail2ban intrusion prevention system.
+  license: Apache-2.0
+  company: EWARE
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Debian
+      versions:
+        - "bookworm"
+      galaxy_tags:
+        - debian
+        - debian12
+    - name: Ubuntu
+      versions:
+        - "jammy"
+      galaxy_tags:
+        - ubuntu
+        - ubuntu22
+    - name: EL
+      versions:
+        - "9"
+      galaxy_tags:
+        - el
+        - el9
+        - rhel
+        - rhel9
+    - name: Rocky
+      versions:
+        - "9.0"
+      galaxy_tags:
+        - rocky
+        - rocky9
+
+  galaxy_tags:
+    - fail2ban
+    - security
+    - firewall
+    - intrusion
+    - prevention
+    - protection
+    - system
+
+dependencies: []

@@ -1,0 +1,71 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Custom Jail Files
+# =============================================================================
+# This file contains tasks for creating custom jail configuration files.
+# It creates individual jail files in the /etc/fail2ban/jail.d/ directory
+# based on the configuration defined in the fail2ban_custom_jail_files variable.
+#
+# Flow:
+#   1. Create custom jail configuration files
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Create custom jail configuration files
+# -----------------------------------------------------------------------------
+- name: Fail2ban | file | Ensure jail.d directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ fail2ban_dir_config_path }}/jail.d"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Fail2ban | copy | Create custom jail configuration files
+  become: true
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ fail2ban_dir_config_path }}/jail.d/{{ item.name }}.conf"
+    mode: "0644"
+    owner: root
+    group: root
+  with_items: "{{ fail2ban_custom_jail_files }}"
+  when: >
+    fail2ban_custom_jail_files is defined and
+    fail2ban_custom_jail_files | length > 0
+  notify: Fail2ban | handlers | Restart fail2ban service
+
+- name: Fail2ban | find | Identify existing custom jail files
+  become: true
+  ansible.builtin.find:
+    paths: "{{ fail2ban_dir_config_path }}/jail.d"
+    patterns: "*.conf"
+    excludes: "defaults-*.conf,00-*.conf"
+  register: existing_jail_files
+  when: >
+    fail2ban_custom_jail_files is defined and
+    fail2ban_custom_jail_files | length > 0
+
+- name: Fail2ban | file | Remove obsolete custom jail files
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ existing_jail_files.files | default([]) }}"
+  when: >
+    fail2ban_custom_jail_files is defined and
+    fail2ban_custom_jail_files | length > 0 and
+    (item.path | basename | replace('.conf', '')) not in (fail2ban_custom_jail_files | map(attribute='name') | list)
+  notify: Fail2ban | handlers | Restart fail2ban service
+
+- name: Fail2ban | command | Validate custom jail files
+  become: true
+  ansible.builtin.command:
+    cmd: /usr/bin/fail2ban-client -d
+  register: fail2ban_validation_result
+  changed_when: false
+  check_mode: false
+  when: >
+    fail2ban_custom_jail_files is defined and
+    fail2ban_custom_jail_files | length > 0

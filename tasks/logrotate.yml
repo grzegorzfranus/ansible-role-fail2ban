@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Logrotate Tasks
+# =============================================================================
+# This file configures log rotation for Fail2ban log files to ensure they
+# don't grow indefinitely and are properly archived.
+# 
+# Flow:
+# 1. Creates the archive directory if it doesn't exist
+# 2. Deploys a logrotate configuration file with specified options
+#
+# The logrotate configuration is customizable via role variables.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Archive Directory Setup
+# -----------------------------------------------------------------------------
+- name: Fail2ban | stat | Check if archive log directory exists
+  become: true
+  ansible.builtin.stat:
+    path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
+  register: _archive_log_directory_stat_
+
+- name: Fail2ban | file | Create archive log directory if needed
+  become: true
+  ansible.builtin.file:
+    path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: >
+    not _archive_log_directory_stat_.stat.exists
+
+# -----------------------------------------------------------------------------
+# 2. Logrotate Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | template | Deploy logrotate configuration file
+  become: true
+  ansible.builtin.template:
+    src: "logrotate/{{ ansible_os_family | lower }}/fail2ban.j2"
+    dest: "{{ fail2ban_logrotate_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"

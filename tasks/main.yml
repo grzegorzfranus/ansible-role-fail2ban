@@ -1,0 +1,107 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Main Tasks
+# =============================================================================
+# This is the main entry point for the Fail2ban role.
+# It orchestrates the execution of all tasks needed to install, configure,
+# and manage the Fail2ban service.
+#
+# Flow:
+#   1. Load OS-specific variables
+#   2. Validate role variables
+#   3. Install Fail2ban package
+#   4. Configure Fail2ban service
+#   5. Configure custom jails
+#   6. Configure logrotate
+#   7. Upgrade Fail2ban package
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. OS-specific variables
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_vars | Load OS specific variables
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_version'] | lower }}.yml"
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_major_version'] | lower }}.yml"
+        - "{{ ansible_facts['distribution'] | lower }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}_{{ ansible_facts['distribution_version'] | lower }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}_{{ ansible_facts['distribution_major_version'].split('.')[0] }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}.yml"
+        - "main.yml"
+      paths:
+        - "{{ role_path }}/vars"
+  tags:
+    - always
+    - vars
+
+# -----------------------------------------------------------------------------
+# 2. Variable validation
+# -----------------------------------------------------------------------------
+- name: Fail2ban | import_tasks | Execute variable validation
+  import_tasks: assert.yml
+  run_once: true
+  delegate_to: localhost
+  tags:
+    - always
+    - asserts
+
+# -----------------------------------------------------------------------------
+# 3. Installation
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_tasks | Execute installation tasks
+  include_tasks: install.yml
+  when: >
+    fail2ban_role_action in ['all', 'install']
+  tags:
+    - always
+    - install
+
+# -----------------------------------------------------------------------------
+# 4. Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_tasks | Execute configuration tasks
+  include_tasks: configure.yml
+  when: >
+    fail2ban_role_action in ['all', 'configure']
+  tags:
+    - always
+    - configure
+
+# -----------------------------------------------------------------------------
+# 5. Custom Jails Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_tasks | Execute custom jails configuration
+  include_tasks: custom_jails.yml
+  when: >
+    fail2ban_role_action in ['all', 'configure', 'custom_jails']
+  tags:
+    - always
+    - configure
+    - custom_jails
+
+# -----------------------------------------------------------------------------
+# 6. Logrotate Configuration
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_tasks | Execute logrotate configuration
+  include_tasks: logrotate.yml
+  when: >
+    fail2ban_role_action in ['all', 'configure', 'logrotate'] and
+    fail2ban_configure_logrotate | default(false)
+  tags:
+    - always
+    - configure
+    - logrotate
+
+# -----------------------------------------------------------------------------
+# 7. Upgrade
+# -----------------------------------------------------------------------------
+- name: Fail2ban | include_tasks | Execute upgrade tasks
+  include_tasks: upgrade.yml
+  when: >
+    fail2ban_role_action in ['upgrade']
+  tags:
+    - always
+    - upgrade

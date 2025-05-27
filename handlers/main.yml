@@ -1,0 +1,19 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Handlers
+# =============================================================================
+# This file defines handlers that can be triggered by tasks to perform
+# service management operations. Handlers run only once at the end of plays,
+# even if notified multiple times.
+#
+# Each handler restarts a specific service after configuration changes.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Service Handlers
+# -----------------------------------------------------------------------------
+- name: Fail2ban | handlers | Restart fail2ban service
+  become: true
+  ansible.builtin.service:
+    name: "{{ fail2ban_service_name }}"
+    state: restarted

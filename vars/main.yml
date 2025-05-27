@@ -1,0 +1,46 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Common Variables
+# =============================================================================
+# This file defines common variables shared across all distributions.
+# These values are distribution-agnostic and apply to all supported systems.
+#
+# Sections:
+#   1. Service Settings
+#   2. Package Settings
+#   3. Directory Paths
+#   4. Configuration Paths
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Service Settings
+# -----------------------------------------------------------------------------
+# Service name is consistent across most distributions
+# Note: This may be overridden in OS-specific vars if needed
+fail2ban_service_name: "fail2ban"
+
+# -----------------------------------------------------------------------------
+# 2. Package Settings
+# -----------------------------------------------------------------------------
+# Package name is consistent across most distributions
+# Note: This may be overridden in OS-specific vars if needed
+fail2ban_package_name: "fail2ban"
+
+# -----------------------------------------------------------------------------
+# 3. Directory Paths
+# -----------------------------------------------------------------------------
+# Standard location for Fail2ban configuration files
+fail2ban_dir_config_path: "/etc/fail2ban"
+
+# Standard location for Fail2ban log files (used by logrotate)
+fail2ban_log_directory_path: "/var/log/fail2ban"
+
+# -----------------------------------------------------------------------------
+# 4. Configuration Paths
+# -----------------------------------------------------------------------------
+# Path to logrotate configuration file
+# This path is standard across most Linux distributions
+fail2ban_logrotate_config_path: "/etc/logrotate.d/fail2ban"
+
+# Default log file location - can be overridden in fail2ban.local
+fail2ban_default_log_path: "/var/log/fail2ban.log"
