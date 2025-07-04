@@ -8,6 +8,21 @@
   gather_facts: true
 
   tasks:
+    - name: "🛠️ Prepare | Fix /etc/shadow permissions"
+      register: etc_shadow
+      ansible.builtin.shell:
+        cmd: |
+          echo "🔍 Checking /etc/shadow permissions..."
+          ls -l /etc/shadow
+          chmod 0400 /etc/shadow
+          echo "✅ Fixed /etc/shadow permissions:"
+          ls -l /etc/shadow
+          echo ""
+
+    - name: "📊 Prepare | Verify shadow file permissions"
+      ansible.builtin.debug:
+        var: etc_shadow.stdout
+
     - name: "🔄 Prepare | Update apt cache"
       ansible.builtin.apt:
         update_cache: true
