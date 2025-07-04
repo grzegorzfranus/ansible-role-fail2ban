@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.2] - 2024-12-19
+## [1.0.2] - 2025-07-04
 
 ### Added ✅
 - Added molecule.yml configuration file for Docker-based testing
