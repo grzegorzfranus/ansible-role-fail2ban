@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.2] - 2024-12-19
 
+### Added ✅
+- Added molecule.yml configuration file for Docker-based testing
+- Enhanced Molecule testing framework with proper Docker platform configuration
+- Added support for environment variable-based testing configuration
+
 ### Fixed 🔧
 - Fixed handler name mismatch causing "handler not found" errors
 - Added emojis to notify statements in tasks to match handler names
