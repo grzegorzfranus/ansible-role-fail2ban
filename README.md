@@ -1,8 +1,8 @@
 # 🛡️ Ansible Role: Fail2ban
 
-|Source|Version|CI|License|
+|Source|Version|Tests|License|
 |------|-------|-------|-------|
-|[![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban)|[![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-fail2ban)](https://github.com/grzegorzfranus/ansible-role-fail2ban/releases)|[![tests](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/ci.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions)|[![Repository License](https://img.shields.io/badge/license-apache2.0-brightgreen.svg)](LICENSE)|
+|[![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban)|[![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-fail2ban)](https://github.com/grzegorzfranus/ansible-role-fail2ban/releases)|[![tests](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/test-and-validation.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions)|[![Repository License](https://img.shields.io/badge/license-apache2.0-brightgreen.svg)](LICENSE)|
 
 This Ansible role installs, configures, and manages **Fail2ban**, an intrusion prevention framework that protects systems from brute-force attacks and other malicious behavior. It works by monitoring log files for selected patterns and taking action when these patterns match malicious activity.
 
@@ -23,8 +23,10 @@ List of officially supported operating systems:
 
 | OS Family | Version | Status |
 |-----------|---------|---------|
+| Ubuntu | 24.04 (Noble) | ✅ **Supported** |
 | Ubuntu | 22.04 (Jammy) | ✅ **Supported** |
 | Debian | 12 (Bookworm) | ✅ **Supported** |
+| Debian | 11 (Bullseye) | ✅ **Supported** |
 | Rocky Linux | 9 | ✅ **Supported** |
 | EL | 9 | ✅ **Supported** |
 
