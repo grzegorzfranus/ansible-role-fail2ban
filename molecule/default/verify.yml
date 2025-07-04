@@ -1,0 +1,114 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Molecule Verification Playbook
+# =============================================================================
+
+- name: "🧪 Molecule | Verify Role"
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../defaults/main.yml
+    - ../../vars/main.yml
+
+  tasks:
+    - name: "🔍 Verify | Check if Fail2ban package is installed"
+      ansible.builtin.command: "dpkg -l fail2ban"
+      register: _package_check_
+      failed_when: false
+      changed_when: false
+      when: >
+        ansible_pkg_mgr == 'apt'
+
+    - name: "✅ Verify | Assert Fail2ban package is installed"
+      ansible.builtin.assert:
+        that:
+          - _package_check_.rc == 0
+          - "'fail2ban' in _package_check_.stdout"
+        fail_msg: "❌ Fail2ban package is not installed"
+        success_msg: "✅ Fail2ban package installation verified"
+      when: >
+        ansible_pkg_mgr == 'apt'
+
+    - name: "🔍 Verify | Check if Fail2ban client binary exists"
+      ansible.builtin.stat:
+        path: "/usr/bin/fail2ban-client"
+      register: _client_binary_
+
+    - name: "✅ Verify | Assert client binary exists and is executable"
+      ansible.builtin.assert:
+        that:
+          - _client_binary_.stat.exists
+          - _client_binary_.stat.executable
+        fail_msg: "❌ Fail2ban client binary not found or not executable"
+        success_msg: "✅ Fail2ban client binary verified"
+
+    - name: "🔍 Verify | Check if Fail2ban server binary exists"
+      ansible.builtin.stat:
+        path: "/usr/bin/fail2ban-server"
+      register: _server_binary_
+
+    - name: "✅ Verify | Assert server binary exists and is executable"
+      ansible.builtin.assert:
+        that:
+          - _server_binary_.stat.exists
+          - _server_binary_.stat.executable
+        fail_msg: "❌ Fail2ban server binary not found or not executable"
+        success_msg: "✅ Fail2ban server binary verified"
+
+    - name: "🔍 Verify | Test Fail2ban client functionality"
+      ansible.builtin.command: "/usr/bin/fail2ban-client --version"
+      register: _version_check_
+      changed_when: false
+
+    - name: "📊 Verify | Show Fail2ban version"
+      ansible.builtin.debug:
+        msg: "🎯 Fail2ban version: {{ _version_check_.stdout }}"
+
+    - name: "🔍 Verify | Check if Fail2ban service file exists"
+      ansible.builtin.stat:
+        path: "/lib/systemd/system/fail2ban.service"
+      register: _service_file_
+      when: >
+        ansible_service_mgr == 'systemd'
+
+    - name: "✅ Verify | Assert service file exists"
+      ansible.builtin.assert:
+        that:
+          - _service_file_.stat.exists
+        fail_msg: "❌ Fail2ban service file not found"
+        success_msg: "✅ Fail2ban service file verified"
+      when: >
+        ansible_service_mgr == 'systemd'
+
+    - name: "🔍 Verify | Check Fail2ban configuration files"
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: _config_files_
+      with_items:
+        - "/etc/fail2ban/fail2ban.local"
+        - "/etc/fail2ban/jail.local"
+
+    - name: "✅ Verify | Assert configuration files exist"
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "❌ Configuration file {{ item.stat.path }} not found"
+        success_msg: "✅ Configuration file {{ item.stat.path }} verified"
+      with_items: "{{ _config_files_.results }}"
+
+    - name: "🔍 Verify | Check if custom jail file exists"
+      ansible.builtin.stat:
+        path: "/etc/fail2ban/jail.d/sshd-test.conf"
+      register: _custom_jail_file_
+
+    - name: "✅ Verify | Assert custom jail file exists"
+      ansible.builtin.assert:
+        that:
+          - _custom_jail_file_.stat.exists
+        fail_msg: "❌ Custom jail file not found"
+        success_msg: "✅ Custom jail file verified"
+
+    - name: "📊 Verify | Show comprehensive verification results"
+      ansible.builtin.debug:
+        msg: "🎉 All Fail2ban verification checks completed successfully!"

@@ -3,17 +3,19 @@
 # Ansible Role: Fail2ban - Package Installation
 # =============================================================================
 # This file contains tasks for installing the Fail2ban package.
-# The installation ensures that the package is present and up to date.
+# The installation ensures that the package is present and up to date,
+# with enhanced validation and error reporting capabilities.
 #
 # Flow:
-#   1. EPEL Installation (RedHat/Oracle/Rocky)
+#   1. EPEL Installation (RedHat/Oracle/Rocky Linux)
 #   2. Package Installation
+#   3. Post-Installation Verification
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. EPEL Installation (RedHat/Oracle/Rocky)
+# 1. EPEL Installation (RedHat/Oracle/Rocky Linux)
 # -----------------------------------------------------------------------------
-- name: Fail2ban | package | Install EPEL package for Oracle Linux distribution
+- name: "📦 Fail2ban | install | Install EPEL package for Oracle Linux distribution"
   become: true
   ansible.builtin.package:
     name: "oracle-epel-release-el{{ ansible_distribution_major_version }}"
@@ -23,7 +25,7 @@
     ansible_os_family | lower == "redhat" and
     ansible_facts['distribution'] | lower == "oraclelinux"
 
-- name: Fail2ban | package | Install EPEL package for RedHat family
+- name: "📦 Fail2ban | install | Install EPEL package for RedHat family"
   become: true
   ansible.builtin.package:
     name: "epel-release"
@@ -36,9 +38,31 @@
 # -----------------------------------------------------------------------------
 # 2. Package Installation
 # -----------------------------------------------------------------------------
-- name: Fail2ban | package | Install Fail2ban package
+- name: "📦 Fail2ban | install | Install Fail2ban package"
   become: true
   ansible.builtin.package:
     name: "{{ fail2ban_package_name }}"
     state: present
     update_cache: true
+  register: _fail2ban_package_install_result
+  until: _fail2ban_package_install_result is succeeded
+  retries: 3
+  delay: 10
+
+# -----------------------------------------------------------------------------
+# 3. Post-Installation Verification
+# -----------------------------------------------------------------------------
+- name: "🔍 Fail2ban | install | Verify Fail2ban installation"
+  ansible.builtin.command: "fail2ban-client --version"
+  register: _fail2ban_installed_version
+  changed_when: false
+  failed_when: _fail2ban_installed_version.rc != 0
+
+- name: "📊 Fail2ban | install | Report installation results"
+  ansible.builtin.debug:
+    msg:
+      - "✅ Fail2ban Installation Completed Successfully:"
+      - "   Installed Version: {{ _fail2ban_installed_version.stdout }}"
+      - "   Package Name: {{ fail2ban_package_name }}"
+      - "   Installation Changed: {{ 'Yes' if _fail2ban_package_install_result.changed else 'No (already installed)' }}"
+      - "   Package Manager: {{ ansible_pkg_mgr }}"

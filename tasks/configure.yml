@@ -3,8 +3,8 @@
 # Ansible Role: Fail2ban - Service Configuration
 # =============================================================================
 # This file contains tasks for configuring the Fail2ban service.
-# It handles service state, configuration file deployment, and custom
-# configuration files management.
+# It handles service state, configuration file deployment, custom
+# configuration files management, and systemd service overrides.
 #
 # Flow:
 #   1. Service State Management
@@ -16,46 +16,46 @@
 # -----------------------------------------------------------------------------
 # 1. Service State Management
 # -----------------------------------------------------------------------------
-- name: Fail2ban | service | Enable Fail2ban service on system startup
+- name: "🚀 Fail2ban | configure | Enable Fail2ban service on system startup"
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
     enabled: true
-  notify: Fail2ban | handlers | Restart fail2ban service
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
     fail2ban_service_enabled | bool
 
-- name: Fail2ban | service | Disable Fail2ban service on system startup
+- name: "🛑 Fail2ban | configure | Disable Fail2ban service on system startup"
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
     enabled: false
-  notify: Fail2ban | handlers | Restart fail2ban service
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
     not fail2ban_service_enabled | bool
 
 # -----------------------------------------------------------------------------
 # 2. Configuration File Deployment
 # -----------------------------------------------------------------------------
-- name: Fail2ban | file | Remove default jail.d file for Debian
+- name: "🗑️ Fail2ban | configure | Remove default jail.d file for Debian"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_dir_config_path }}/jail.d/defaults-debian.conf"
     state: absent
-  notify: Fail2ban | handlers | Restart fail2ban service
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
     ansible_os_family | lower == "debian"
 
-- name: Fail2ban | file | Remove default jail.d file for RedHat
+- name: "🗑️ Fail2ban | configure | Remove default jail.d file for RedHat"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_dir_config_path }}/jail.d/00-firewalld.conf"
     state: absent
-  notify: Fail2ban | handlers | Restart fail2ban service
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
     ansible_os_family | lower == "redhat"
 
-- name: Fail2ban | template | Deploy Fail2ban main configuration file
+- name: "🔧 Fail2ban | configure | Deploy Fail2ban main configuration file"
   become: true
   ansible.builtin.template:
     src: "fail2ban/fail2ban.local.j2"
@@ -63,9 +63,10 @@
     mode: "0644"
     owner: root
     group: root
-  notify: Fail2ban | handlers | Restart fail2ban service
+    backup: true
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
 
-- name: Fail2ban | template | Deploy Fail2ban jail configuration file
+- name: "🔧 Fail2ban | configure | Deploy Fail2ban jail configuration file"
   become: true
   ansible.builtin.template:
     src: "fail2ban/jail.local.j2"
@@ -73,12 +74,20 @@
     mode: "0644"
     owner: root
     group: root
-  notify: Fail2ban | handlers | Restart fail2ban service
+    backup: true
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
 
 # -----------------------------------------------------------------------------
 # 3. Custom Configuration Files Deployment
 # -----------------------------------------------------------------------------
-- name: Fail2ban | copy | Deploy custom jail files
+- name: "🔍 Fail2ban | configure | Check if custom jails path exists"
+  ansible.builtin.stat:
+    path: "{{ fail2ban_custom_jails_path }}"
+  register: _custom_jails_path_stat_
+  when: >
+    fail2ban_custom_jails_path is defined
+
+- name: "📁 Fail2ban | configure | Deploy custom jail files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_jails_path }}/"
@@ -86,11 +95,20 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Fail2ban | handlers | Restart fail2ban service
+    backup: true
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
-    fail2ban_custom_jails_path is defined
+    fail2ban_custom_jails_path is defined and
+    _custom_jails_path_stat_.stat.exists
 
-- name: Fail2ban | copy | Deploy custom action files
+- name: "🔍 Fail2ban | configure | Check if custom actions path exists"
+  ansible.builtin.stat:
+    path: "{{ fail2ban_custom_actions_path }}"
+  register: _custom_actions_path_stat_
+  when: >
+    fail2ban_custom_actions_path is defined
+
+- name: "📁 Fail2ban | configure | Deploy custom action files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_actions_path }}/"
@@ -98,11 +116,20 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Fail2ban | handlers | Restart fail2ban service
+    backup: true
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
-    fail2ban_custom_actions_path is defined
+    fail2ban_custom_actions_path is defined and
+    _custom_actions_path_stat_.stat.exists
 
-- name: Fail2ban | copy | Deploy custom filter files
+- name: "🔍 Fail2ban | configure | Check if custom filters path exists"
+  ansible.builtin.stat:
+    path: "{{ fail2ban_custom_filters_path }}"
+  register: _custom_filters_path_stat_
+  when: >
+    fail2ban_custom_filters_path is defined
+
+- name: "📁 Fail2ban | configure | Deploy custom filter files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_filters_path }}/"
@@ -110,23 +137,27 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Fail2ban | handlers | Restart fail2ban service
+    backup: true
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
   when: >
-    fail2ban_custom_filters_path is defined
+    fail2ban_custom_filters_path is defined and
+    _custom_filters_path_stat_.stat.exists
 
 # -----------------------------------------------------------------------------
 # 4. Systemd Service Management
 # -----------------------------------------------------------------------------
-- name: Fail2ban | file | Create systemd service directory
+- name: "📁 Fail2ban | configure | Create systemd service directory"
   become: true
   ansible.builtin.file:
     path: "/etc/systemd/system/fail2ban.service.d"
     state: directory
     mode: "0754"
+    owner: root
+    group: root
   when: >
     fail2ban_role_mode == "nftables"
 
-- name: Fail2ban | template | Deploy systemd override configuration
+- name: "🔧 Fail2ban | configure | Deploy systemd override configuration"
   become: true
   ansible.builtin.template:
     src: "systemd/override.conf.j2"
@@ -134,13 +165,21 @@
     mode: "0644"
     owner: root
     group: root
-  register: _systemd_file_
+    backup: true
   when: >
     fail2ban_role_mode == "nftables"
+  notify: "🔄 Fail2ban | handlers | Reload systemd daemon"
 
-- name: Fail2ban | systemd_service | Reload systemd daemon
-  become: true
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-  when: >
-    _systemd_file_.changed
+# -----------------------------------------------------------------------------
+# 5. Configuration Summary
+# -----------------------------------------------------------------------------
+- name: "📊 Fail2ban | configure | Report configuration status"
+  ansible.builtin.debug:
+    msg:
+      - "✅ Fail2ban Configuration Completed Successfully:"
+      - "   Service Enabled: {{ fail2ban_service_enabled }}"
+      - "   Configuration Path: {{ fail2ban_dir_config_path }}"
+      - "   Role Mode: {{ fail2ban_role_mode | default('default') }}"
+      - "   Custom Jails: {{ 'Yes' if (fail2ban_custom_jails_path is defined and _custom_jails_path_stat_.stat.exists) else 'No' }}"
+      - "   Custom Actions: {{ 'Yes' if (fail2ban_custom_actions_path is defined and _custom_actions_path_stat_.stat.exists) else 'No' }}"
+      - "   Custom Filters: {{ 'Yes' if (fail2ban_custom_filters_path is defined and _custom_filters_path_stat_.stat.exists) else 'No' }}"

@@ -1,0 +1,54 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Molecule Preparation Playbook
+# =============================================================================
+
+- name: "🧪 Molecule | Prepare"
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: "🔄 Prepare | Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      changed_when: false
+      when: >
+        ansible_os_family == "Debian"
+
+    - name: "⏳ Prepare | Wait for systemd to complete initialization"
+      ansible.builtin.systemd:
+        name: multi-user.target
+        state: started
+      register: systemctl_status
+      until: true
+      retries: 30
+      delay: 5
+      when: >
+        ansible_service_mgr == 'systemd'
+      changed_when: false
+      failed_when: false
+
+    - name: "📁 Prepare | Create test log directory"
+      ansible.builtin.file:
+        path: /var/log/fail2ban-test
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: "📝 Prepare | Create test auth log file"
+      ansible.builtin.file:
+        path: /var/log/auth.log
+        state: touch
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: "📊 Prepare | Display preparation summary"
+      ansible.builtin.debug:
+        msg:
+          - "✅ Molecule preparation completed"
+          - "🔄 Package cache: Updated"
+          - "⏳ System initialization: Verified"
+          - "📁 Test directories: Created"

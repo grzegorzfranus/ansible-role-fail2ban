@@ -3,19 +3,72 @@
 # Ansible Role: Fail2ban - Package Upgrade
 # =============================================================================
 # This file contains tasks for upgrading the Fail2ban package.
-# The upgrade ensures that the package is at the latest available version.
+# The upgrade ensures that the package is at the latest available version
+# with enhanced validation and error reporting capabilities.
 #
 # Flow:
-#   1. Package Upgrade
+#   1. Pre-Upgrade Validation
+#   2. Package Upgrade
+#   3. Post-Upgrade Verification
+#   4. Upgrade Summary
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. Package Upgrade
+# 1. Pre-Upgrade Validation
 # -----------------------------------------------------------------------------
-- name: Fail2ban | package | Upgrade Fail2ban package to the latest version
+- name: "🔍 Fail2ban | upgrade | Check current Fail2ban version before upgrade"
+  ansible.builtin.command: "fail2ban-client --version"
+  register: _fail2ban_version_before
+  failed_when: false
+  changed_when: false
+
+- name: "📋 Fail2ban | upgrade | Display pre-upgrade information"
+  ansible.builtin.debug:
+    msg:
+      - "🔄 Fail2ban Package Upgrade Starting:"
+      - "   Current Version: {{ _fail2ban_version_before.stdout if _fail2ban_version_before.rc == 0 else 'Not installed or not responding' }}"
+      - "   Package Name: {{ fail2ban_package_name }}"
+      - "   Package Manager: {{ ansible_pkg_mgr }}"
+
+# -----------------------------------------------------------------------------
+# 2. Package Upgrade
+# -----------------------------------------------------------------------------
+- name: "🔄 Fail2ban | upgrade | Upgrade Fail2ban package to the latest version"
   become: true
   ansible.builtin.package:
-    name: "{{ fail2ban_package_name }}" 
-    state: latest
+    name: "{{ fail2ban_package_name }}"
+    state: latest  # noqa package-latest
     update_cache: true
-  notify: Fail2ban | handlers | Restart fail2ban service
+  register: _fail2ban_upgrade_result
+  until: _fail2ban_upgrade_result is succeeded
+  retries: 3
+  delay: 10
+  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+
+# -----------------------------------------------------------------------------
+# 3. Post-Upgrade Verification
+# -----------------------------------------------------------------------------
+- name: "🔍 Fail2ban | upgrade | Check Fail2ban version after upgrade"
+  ansible.builtin.command: "fail2ban-client --version"
+  register: _fail2ban_version_after
+  changed_when: false
+  failed_when: _fail2ban_version_after.rc != 0
+
+- name: "🔍 Fail2ban | upgrade | Verify Fail2ban service status after upgrade"
+  ansible.builtin.service:
+    name: "{{ fail2ban_service_name }}"
+  register: _fail2ban_service_status
+  failed_when: false
+
+# -----------------------------------------------------------------------------
+# 4. Upgrade Summary
+# -----------------------------------------------------------------------------
+- name: "📊 Fail2ban | upgrade | Report upgrade results"
+  ansible.builtin.debug:
+    msg:
+      - "✅ Fail2ban Package Upgrade Completed Successfully:"
+      - "   Previous Version: {{ _fail2ban_version_before.stdout if _fail2ban_version_before.rc == 0 else 'Unknown' }}"
+      - "   Current Version: {{ _fail2ban_version_after.stdout }}"
+      - "   Package Changed: {{ 'Yes' if _fail2ban_upgrade_result.changed else 'No (already latest)' }}"
+      - "   Service Status: {{ _fail2ban_service_status.status.ActiveState | default('unknown') if _fail2ban_service_status.status is defined else 'unknown' }}"
+      - "   Package Manager: {{ ansible_pkg_mgr }}"

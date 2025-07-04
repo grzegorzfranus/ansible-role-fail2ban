@@ -1,0 +1,74 @@
+---
+name: 🧪 Test & Validation Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - "feature/*"
+      - "release/*"
+      - "bugfix/*"
+      - "hotfix/*"
+
+jobs:
+  lint:
+    name: 🧪 Lint code
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Check out the codebase
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip3 install yamllint
+
+      - name: 🔍 Lint code
+        run: |
+          yamllint .
+
+  molecule:
+    name: 🧪 Molecule test
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        include:
+          - scenario: default
+            distro: ubuntu2204
+          - scenario: default
+            distro: rockylinux9
+          - scenario: default
+            distro: ubuntu2404
+          - scenario: default
+            distro: debian12
+          - scenario: default
+            distro: debian11
+
+    steps:
+      - name: 📥 Check out the codebase
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip3 install ansible molecule molecule-plugins[docker] docker ansible-lint
+
+      - name: 🚀 Run molecule test
+        run: |
+          molecule test --scenario-name ${{ matrix.scenario }}
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}

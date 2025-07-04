@@ -3,11 +3,12 @@
 # Ansible Role: Fail2ban - Logrotate Tasks
 # =============================================================================
 # This file configures log rotation for Fail2ban log files to ensure they
-# don't grow indefinitely and are properly archived.
-# 
+# don't grow indefinitely and are properly archived. The logrotate configuration
+# is customizable via role variables following Ansible best practices.
+#
 # Flow:
-# 1. Creates the archive directory if it doesn't exist
-# 2. Deploys a logrotate configuration file with specified options
+# 1. Archive Directory Setup
+# 2. Logrotate Configuration Deployment
 #
 # The logrotate configuration is customizable via role variables.
 # =============================================================================
@@ -15,13 +16,13 @@
 # -----------------------------------------------------------------------------
 # 1. Archive Directory Setup
 # -----------------------------------------------------------------------------
-- name: Fail2ban | stat | Check if archive log directory exists
+- name: "🔍 Fail2ban | logrotate | Check if archive log directory exists"
   become: true
   ansible.builtin.stat:
     path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
   register: _archive_log_directory_stat_
 
-- name: Fail2ban | file | Create archive log directory if needed
+- name: "📁 Fail2ban | logrotate | Create archive log directory if needed"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
@@ -33,9 +34,9 @@
     not _archive_log_directory_stat_.stat.exists
 
 # -----------------------------------------------------------------------------
-# 2. Logrotate Configuration
+# 2. Logrotate Configuration Deployment
 # -----------------------------------------------------------------------------
-- name: Fail2ban | template | Deploy logrotate configuration file
+- name: "🔧 Fail2ban | logrotate | Deploy logrotate configuration file"
   become: true
   ansible.builtin.template:
     src: "logrotate/{{ ansible_os_family | lower }}/fail2ban.j2"
@@ -43,3 +44,4 @@
     owner: root
     group: root
     mode: "0644"
+    backup: true

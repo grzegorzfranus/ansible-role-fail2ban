@@ -4,7 +4,7 @@
 # =============================================================================
 # This is the main entry point for the Fail2ban role.
 # It orchestrates the execution of all tasks needed to install, configure,
-# and manage the Fail2ban service.
+# and manage the Fail2ban service following Ansible best practices.
 #
 # Flow:
 #   1. Load OS-specific variables
@@ -17,10 +17,10 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 1. OS-specific variables
+# 1. OS-Specific Variables
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_vars | Load OS specific variables
-  include_vars: "{{ lookup('first_found', params) }}"
+- name: "📋 Fail2ban | vars | Load OS specific variables"
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
       files:
@@ -38,10 +38,10 @@
     - vars
 
 # -----------------------------------------------------------------------------
-# 2. Variable validation
+# 2. Variable Validation
 # -----------------------------------------------------------------------------
-- name: Fail2ban | import_tasks | Execute variable validation
-  import_tasks: assert.yml
+- name: "✅ Fail2ban | assert | Execute variable validation"
+  ansible.builtin.import_tasks: assert.yml
   run_once: true
   delegate_to: localhost
   tags:
@@ -51,8 +51,8 @@
 # -----------------------------------------------------------------------------
 # 3. Installation
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_tasks | Execute installation tasks
-  include_tasks: install.yml
+- name: "📦 Fail2ban | install | Execute installation tasks"
+  ansible.builtin.include_tasks: install.yml
   when: >
     fail2ban_role_action in ['all', 'install']
   tags:
@@ -62,8 +62,8 @@
 # -----------------------------------------------------------------------------
 # 4. Configuration
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_tasks | Execute configuration tasks
-  include_tasks: configure.yml
+- name: "🔧 Fail2ban | configure | Execute configuration tasks"
+  ansible.builtin.include_tasks: configure.yml
   when: >
     fail2ban_role_action in ['all', 'configure']
   tags:
@@ -73,8 +73,8 @@
 # -----------------------------------------------------------------------------
 # 5. Custom Jails Configuration
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_tasks | Execute custom jails configuration
-  include_tasks: custom_jails.yml
+- name: "🛠️ Fail2ban | jails | Execute custom jails configuration"
+  ansible.builtin.include_tasks: custom_jails.yml
   when: >
     fail2ban_role_action in ['all', 'configure', 'custom_jails']
   tags:
@@ -85,8 +85,8 @@
 # -----------------------------------------------------------------------------
 # 6. Logrotate Configuration
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_tasks | Execute logrotate configuration
-  include_tasks: logrotate.yml
+- name: "📝 Fail2ban | logrotate | Execute logrotate configuration"
+  ansible.builtin.include_tasks: logrotate.yml
   when: >
     fail2ban_role_action in ['all', 'configure', 'logrotate'] and
     fail2ban_configure_logrotate | default(false)
@@ -98,10 +98,10 @@
 # -----------------------------------------------------------------------------
 # 7. Upgrade
 # -----------------------------------------------------------------------------
-- name: Fail2ban | include_tasks | Execute upgrade tasks
-  include_tasks: upgrade.yml
+- name: "🔄 Fail2ban | upgrade | Execute upgrade tasks"
+  ansible.builtin.include_tasks: upgrade.yml
   when: >
-    fail2ban_role_action in ['upgrade']
+    fail2ban_role_action in ['all', 'upgrade']
   tags:
     - always
     - upgrade
