@@ -30,7 +30,7 @@ protocol = {{ fail2ban_protocol }}
 
 # "ignoreself" specifies whether the local resp. own IP addresses should be ignored
 # (default is true). Fail2ban will not ban a host which matches such addresses.
-ignoreself = {{ fail2ban_ignoreself }}
+ignoreself = {{ 'true' if fail2ban_ignoreself | bool else 'false' }}
 
 # "ignoreip" can be a list of IP addresses, CIDR masks or DNS hosts. Fail2ban
 # will not ban a host which matches an address in this list. Several addresses

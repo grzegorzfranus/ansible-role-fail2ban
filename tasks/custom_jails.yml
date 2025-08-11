@@ -38,7 +38,7 @@
     owner: root
     group: root
     backup: true
-  with_items: "{{ fail2ban_custom_jail_files }}"
+  loop: "{{ fail2ban_custom_jail_files }}"
   when: >
     fail2ban_custom_jail_files is defined and
     fail2ban_custom_jail_files | length > 0
@@ -70,7 +70,7 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
-  with_items: "{{ _existing_jail_files.files }}"
+  loop: "{{ _existing_jail_files.files }}"
   when: >
     fail2ban_custom_jail_files is defined and
     fail2ban_custom_jail_files | length > 0 and

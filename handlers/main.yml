@@ -20,6 +20,7 @@
     state: restarted
   register: _fail2ban_service_restart_result
   failed_when: _fail2ban_service_restart_result.failed
+  when: fail2ban_service_enabled | bool
 
 - name: "🔄 Fail2ban | handlers | Reload systemd daemon"
   become: true

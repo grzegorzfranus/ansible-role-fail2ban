@@ -30,9 +30,9 @@
     success_msg: "✅ Role mode is valid: {{ fail2ban_role_mode if fail2ban_role_mode | length > 0 else 'default' }}"
     quiet: true
 
-- name: "🔍 Fail2ban | assert | Check if nftables is available when nftables mode is selected"
+- name: "🔍 Fail2ban | assert | Check nftables command availability when nftables mode is selected"
   ansible.builtin.command:
-    cmd: which nft
+    cmd: nft --version
   register: _nftables_check_
   failed_when: false
   changed_when: false
@@ -128,8 +128,7 @@
       - fail2ban_protocol is defined
       - fail2ban_protocol is string
       - fail2ban_ignoreself is defined
-      - fail2ban_ignoreself is string
-      - fail2ban_ignoreself in ["true", "false"]
+      - fail2ban_ignoreself is boolean
       - fail2ban_ignoreip is defined
       - fail2ban_ignoreip is sequence
     fail_msg: "❌ Invalid jail configuration variables. Please verify protocol, ignoreself, and ignoreip settings"
@@ -165,25 +164,23 @@
 # -----------------------------------------------------------------------------
 # 6. Email Notification Settings
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate email notification variables"
+- name: "🧪 Fail2ban | assert | Validate email notification variables (enabled only)"
   ansible.builtin.assert:
     that:
-      - fail2ban_email_notification_enabled is defined
       - fail2ban_email_notification_enabled is boolean
-      - fail2ban_destemail is defined
       - fail2ban_destemail is string
       - fail2ban_destemail | length > 0
-      - '"@" in fail2ban_destemail'
-      - fail2ban_sender is defined
+      - "'@' in fail2ban_destemail"
       - fail2ban_sender is string
       - fail2ban_sender | length > 0
-      - '"@" in fail2ban_sender'
-      - fail2ban_mta is defined
+      - "'@' in fail2ban_sender"
       - fail2ban_mta is string
       - fail2ban_mta in ["sendmail", "mail"]
     fail_msg: "❌ Invalid email notification variables. Please verify email addresses contain '@' and MTA is valid"
     success_msg: "✅ Email notification variables are valid"
     quiet: true
+  when: >
+    fail2ban_email_notification_enabled | bool
 
 # -----------------------------------------------------------------------------
 # 7. Custom Jail Configuration

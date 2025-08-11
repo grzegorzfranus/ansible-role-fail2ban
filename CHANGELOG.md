@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.1.0] - 2025-08-11
+
+### Added ✅
+- Molecule tuned to test multiple platforms: Rocky 9, Ubuntu 22.04/24.04, Debian 12
+- Documentation now lists all variables, including internal service, package, and path variables
+- New variable `fail2ban_enable_epel` to control EPEL on EL-family systems
+- Configuration validation step using `fail2ban-client -t` before restart
+
+### Changed 🔄
+- Updated `meta/main.yml` to align supported platforms with `ansible-role-github-runner`
+- Switched deprecated `with_items` to `loop` in tasks and Molecule verify playbook
+- Replaced shell-based permission step in Molecule `prepare.yml` with `ansible.builtin.file`
+- `fail2ban_ignoreself` is now a boolean; templates render `true/false` accordingly
+- Service management streamlined: single enable/disable task; restart occurs only when enabled
+- Controller-side checks for local custom file paths in configuration deployment
+- Systemd override directory permissions set to `0755`
+
+### Fixed 🔧
+- README supported OS matrix reordered and aligned with meta
+- Molecule prepare verified to avoid unnecessary shell usage
+
 ## [1.0.2] - 2025-07-04
 
 ### Added ✅

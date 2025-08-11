@@ -32,6 +32,9 @@ fail2ban_service_enabled: true
 # Enable/disable logrotate configuration for Fail2ban logs
 fail2ban_configure_logrotate: true
 
+# Control enabling EPEL repository on EL-family systems (ignored on non-EL)
+fail2ban_enable_epel: true
+
 # -----------------------------------------------------------------------------
 # 2. Logrotate Configuration
 # -----------------------------------------------------------------------------
@@ -83,9 +86,9 @@ fail2ban_syslog_facility: 1
 # Default protocol to use in jail definitions
 fail2ban_protocol: "tcp"
 
-# "ignoreself" specifies whether the local resp. own IP addresses should be ignored
-# (default is true). Fail2ban will not ban a host which matches such addresses.
-fail2ban_ignoreself: "true"
+# "ignoreself" specifies whether the local resp. own IP addresses should be ignored.
+# Use boolean for clarity. Template will render appropriate literal.
+fail2ban_ignoreself: true
 
 # "ignoreip" can be a list of IP addresses, CIDR masks or DNS hosts. Fail2ban
 # will not ban a host which matches an address in this list. Several addresses

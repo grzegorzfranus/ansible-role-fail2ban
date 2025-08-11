@@ -13,29 +13,17 @@ galaxy_info:
     - name: Debian
       versions:
         - "bookworm"
-      galaxy_tags:
-        - debian
-        - debian12
+        - "bullseye"
     - name: Ubuntu
       versions:
         - "jammy"
-      galaxy_tags:
-        - ubuntu
-        - ubuntu22
+        - "noble"
     - name: EL
       versions:
         - "9"
-      galaxy_tags:
-        - el
-        - el9
-        - rhel
-        - rhel9
     - name: Rocky
       versions:
         - "9.0"
-      galaxy_tags:
-        - rocky
-        - rocky9
 
   galaxy_tags:
     - fail2ban
@@ -45,5 +33,16 @@ galaxy_info:
     - prevention
     - protection
     - system
+    - ubuntu
+    - ubuntu22
+    - ubuntu24
+    - debian
+    - debian12
+    - el
+    - el9
+    - rhel
+    - rhel9
+    - rocky
+    - rocky9
 
 dependencies: []

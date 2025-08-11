@@ -1,4 +1,9 @@
 skip_list:
-  - yaml
   - role-name
-  - meta-no-info  # meta/main.yml should contain relevant info
+  - meta-no-info
+
+profile: min
+
+exclude_paths:
+  - molecule/**
+  - .github/workflows/**

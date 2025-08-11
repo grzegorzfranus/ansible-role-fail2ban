@@ -16,23 +16,11 @@
 # -----------------------------------------------------------------------------
 # 1. Service State Management
 # -----------------------------------------------------------------------------
-- name: "🚀 Fail2ban | configure | Enable Fail2ban service on system startup"
+- name: "🔧 Fail2ban | configure | Configure service enablement"
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
-    enabled: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
-  when: >
-    fail2ban_service_enabled | bool
-
-- name: "🛑 Fail2ban | configure | Disable Fail2ban service on system startup"
-  become: true
-  ansible.builtin.service:
-    name: "{{ fail2ban_service_name }}"
-    enabled: false
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
-  when: >
-    not fail2ban_service_enabled | bool
+    enabled: "{{ fail2ban_service_enabled | bool }}"
 
 # -----------------------------------------------------------------------------
 # 2. Configuration File Deployment
@@ -77,10 +65,19 @@
     backup: true
   notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
 
+- name: "🔎 Fail2ban | configure | Validate configuration syntax"
+  ansible.builtin.command: "fail2ban-client -t"
+  changed_when: false
+  register: _fail2ban_configtest_
+  failed_when: _fail2ban_configtest_.rc != 0
+  when: fail2ban_service_enabled | bool
+
 # -----------------------------------------------------------------------------
 # 3. Custom Configuration Files Deployment
 # -----------------------------------------------------------------------------
-- name: "🔍 Fail2ban | configure | Check if custom jails path exists"
+- name: "🔍 Fail2ban | configure | Check if custom jails path exists (controller)"
+  delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ fail2ban_custom_jails_path }}"
   register: _custom_jails_path_stat_
@@ -101,7 +98,9 @@
     fail2ban_custom_jails_path is defined and
     _custom_jails_path_stat_.stat.exists
 
-- name: "🔍 Fail2ban | configure | Check if custom actions path exists"
+- name: "🔍 Fail2ban | configure | Check if custom actions path exists (controller)"
+  delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ fail2ban_custom_actions_path }}"
   register: _custom_actions_path_stat_
@@ -122,7 +121,9 @@
     fail2ban_custom_actions_path is defined and
     _custom_actions_path_stat_.stat.exists
 
-- name: "🔍 Fail2ban | configure | Check if custom filters path exists"
+- name: "🔍 Fail2ban | configure | Check if custom filters path exists (controller)"
+  delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ fail2ban_custom_filters_path }}"
   register: _custom_filters_path_stat_
@@ -151,7 +152,7 @@
   ansible.builtin.file:
     path: "/etc/systemd/system/fail2ban.service.d"
     state: directory
-    mode: "0754"
+    mode: "0755"
     owner: root
     group: root
   when: >

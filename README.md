@@ -23,8 +23,8 @@ List of officially supported operating systems:
 
 | OS Family | Version | Status |
 |-----------|---------|---------|
-| Ubuntu | 24.04 (Noble) | ✅ **Supported** |
 | Ubuntu | 22.04 (Jammy) | ✅ **Supported** |
+| Ubuntu | 24.04 (Noble) | ✅ **Supported** |
 | Debian | 12 (Bookworm) | ✅ **Supported** |
 | Debian | 11 (Bullseye) | ✅ **Supported** |
 | Rocky Linux | 9 | ✅ **Supported** |
@@ -60,6 +60,7 @@ This role requires root access, so either configure it in your inventory files, 
 | `fail2ban_role_mode` | Define role mode for firewall backend (nftables/iptables) | `""` |
 | `fail2ban_service_enabled` | Enable/disable Fail2ban service on boot | `true` |
 | `fail2ban_configure_logrotate` | Enable/disable logrotate configuration for Fail2ban logs | `true` |
+| `fail2ban_enable_epel` | Enable EPEL repo on EL-family systems (ignored on non-EL) | `true` |
 
 ### 2. 📝 Logrotate Configuration
 
@@ -91,7 +92,7 @@ This role requires root access, so either configure it in your inventory files, 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `fail2ban_protocol` | Default protocol to use in jail definitions | `"tcp"` |
-| `fail2ban_ignoreself` | Whether to ignore the local IP addresses | `"true"` |
+| `fail2ban_ignoreself` | Whether to ignore the local IP addresses (boolean) | `true` |
 | `fail2ban_ignoreip` | List of IPs or CIDR ranges to never ban | `["127.0.0.1/8", "::1"]` |
 
 ### 5. 🚫 Ban Settings
@@ -146,6 +147,19 @@ fail2ban_custom_jail_files:
       logpath = /var/log/apache2/access.log
       maxretry = 2
 ```
+
+### 8. 📁 Paths and Service/Package
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `fail2ban_service_name` | System service name | `"fail2ban"` |
+| `fail2ban_package_name` | Package name to install | `"fail2ban"` |
+| `fail2ban_dir_config_path` | Base configuration directory | `"/etc/fail2ban"` |
+| `fail2ban_log_directory_path` | Default log directory | `"/var/log/fail2ban"` |
+| `fail2ban_logrotate_config_path` | Path to logrotate configuration file | `"/etc/logrotate.d/fail2ban"` |
+| `fail2ban_default_log_path` | Default log file path used by templates | `"/var/log/fail2ban.log"` |
+
+Note: These are internal role variables suitable for advanced customization; most users can keep the defaults.
 
 ## 🔍 Included Custom Filters
 
@@ -242,6 +256,11 @@ The role includes the following custom filters that can be used in your jail con
     fail2ban_configure_logrotate: true
   roles:
     - role: grzegorzfranus.fail2ban
+
+## 🔎 Validation Behavior
+
+- After deploying templates, the role validates configuration with `fail2ban-client -t` and fails early if the syntax is invalid.
+- The Fail2ban service is restarted only when enabled and after a successful configuration test.
 ```
 
 ## 🏷️ Tags

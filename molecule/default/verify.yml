@@ -95,7 +95,7 @@
           - item.stat.exists
         fail_msg: "❌ Configuration file {{ item.stat.path }} not found"
         success_msg: "✅ Configuration file {{ item.stat.path }} verified"
-      with_items: "{{ _config_files_.results }}"
+      loop: "{{ _config_files_.results }}"
 
     - name: "🔍 Verify | Check if custom jail file exists"
       ansible.builtin.stat:

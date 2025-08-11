@@ -33,7 +33,8 @@
     update_cache: true
   when: >
     ansible_os_family | lower == "redhat" and
-    ansible_facts['distribution'] | lower != "oraclelinux"
+    ansible_facts['distribution'] | lower != "oraclelinux" and
+    (fail2ban_enable_epel | default(true)) | bool
 
 # -----------------------------------------------------------------------------
 # 2. Package Installation
