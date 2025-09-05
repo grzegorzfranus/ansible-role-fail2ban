@@ -13,25 +13,27 @@
 # -----------------------------------------------------------------------------
 # Service Handlers
 # -----------------------------------------------------------------------------
-- name: "🔄 Fail2ban | handlers | Restart fail2ban service"
+- name: "Fail2ban | handlers | Restart fail2ban service"
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
     state: restarted
   register: _fail2ban_service_restart_result
   failed_when: _fail2ban_service_restart_result.failed
-  when: fail2ban_service_enabled | bool
+  when: >
+    fail2ban_service_enabled | bool
 
-- name: "🔄 Fail2ban | handlers | Reload systemd daemon"
+- name: "Fail2ban | handlers | Reload systemd daemon"
   become: true
   ansible.builtin.systemd_service:
     daemon_reload: true
 
-- name: "📊 Fail2ban | handlers | Report service restart status"
+- name: "Fail2ban | handlers | Report service restart status"
   ansible.builtin.debug:
     msg:
       - "🔄 Fail2ban Service Restart Handler Executed:"
       - "   Service Name: {{ fail2ban_service_name }}"
       - "   Restart Status: {{ 'Success' if not _fail2ban_service_restart_result.failed else 'Failed' }}"
       - "   Service State: {{ _fail2ban_service_restart_result.state | default('unknown') }}"
-  when: _fail2ban_service_restart_result is defined
+  when: >
+    _fail2ban_service_restart_result is defined

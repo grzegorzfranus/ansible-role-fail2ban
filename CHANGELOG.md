@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.1.0] - 2025-08-11
+## [1.1.1] - 2025-09-05
+
+### Changed 🔄
+- Normalized task and handler names to remove emojis and follow `Rolename | action | description`.
+- Updated tags to allowed set: replaced `vars` with `setup, init`; `asserts` with `validate`; removed `custom_jails` tag.
+- Converted inline `when:` conditions to folded style where required.
+- Documentation updated: tags table reflects allowed tags; variables table verified and aligned with defaults.
+
+### Added ✅
+- Assertions for `fail2ban_enable_epel` and for service/package identifiers.
+- Assertions ensuring path variables are absolute and defined.
+
+### Fixed 🔧
+- Consistency between task notify names and handler names.
 
 ### Added ✅
 - Molecule tuned to test multiple platforms: Rocky 9, Ubuntu 22.04/24.04, Debian 12

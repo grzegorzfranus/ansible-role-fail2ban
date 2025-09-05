@@ -269,14 +269,14 @@ Available tags for selective execution:
 
 | Tag | Description | Usage |
 |-----|-------------|-------|
-| `always` | ✅ Always run tasks | Core functionality |
-| `asserts` | 🧪 Run assertion tasks | Variable validation |
-| `vars` | 📋 Load variables | Variable loading |
-| `install` | 📦 Install Fail2ban packages | Package installation |
-| `configure` | 🔧 Configure Fail2ban service | Service configuration |
-| `custom_jails` | 🛠️ Configure custom jail files | Custom jail setup |
-| `logrotate` | 📝 Configure logrotate | Log rotation setup |
-| `upgrade` | 🔄 Upgrade Fail2ban packages | Package upgrades |
+| `always` | Always run tasks | Core functionality |
+| `setup` | Load variables and setup | Variable loading |
+| `init` | Initialization steps | Early initialization |
+| `validate` | Run assertion tasks | Variable validation |
+| `install` | Install Fail2ban packages | Package installation |
+| `configure` | Configure Fail2ban service | Service configuration |
+| `logrotate` | Configure logrotate | Log rotation setup |
+| `upgrade` | Upgrade Fail2ban packages | Package upgrades |
 
 **Example with tags:**
 ```bash
@@ -284,7 +284,7 @@ Available tags for selective execution:
 ansible-playbook playbook.yml --tags "install"
 
 # Configure without installation
-ansible-playbook playbook.yml --tags "configure,custom_jails"
+ansible-playbook playbook.yml --tags "configure"
 
 # Everything except upgrades
 ansible-playbook playbook.yml --skip-tags "upgrade"

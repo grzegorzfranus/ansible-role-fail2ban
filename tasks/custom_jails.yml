@@ -17,7 +17,7 @@
 # -----------------------------------------------------------------------------
 # 1. Jail Directory Setup
 # -----------------------------------------------------------------------------
-- name: "📁 Fail2ban | jails | Ensure jail.d directory exists"
+- name: "Fail2ban | jails | Ensure jail.d directory exists"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_dir_config_path }}/jail.d"
@@ -29,7 +29,7 @@
 # -----------------------------------------------------------------------------
 # 2. Custom Jail File Creation
 # -----------------------------------------------------------------------------
-- name: "🔧 Fail2ban | jails | Create custom jail configuration files"
+- name: "Fail2ban | jails | Create custom jail configuration files"
   become: true
   ansible.builtin.copy:
     content: "{{ item.content }}"
@@ -42,12 +42,12 @@
   when: >
     fail2ban_custom_jail_files is defined and
     fail2ban_custom_jail_files | length > 0
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
 
 # -----------------------------------------------------------------------------
 # 3. Cleanup Orphaned Files
 # -----------------------------------------------------------------------------
-- name: "🔍 Fail2ban | jails | Identify existing custom jail files"
+- name: "Fail2ban | jails | Identify existing custom jail files"
   become: true
   ansible.builtin.find:
     paths: "{{ fail2ban_dir_config_path }}/jail.d"
@@ -58,14 +58,14 @@
     fail2ban_custom_jail_files is defined and
     fail2ban_custom_jail_files | length > 0
 
-- name: "🔍 Fail2ban | jails | Create list of expected jail files"
+- name: "Fail2ban | jails | Create list of expected jail files"
   ansible.builtin.set_fact:
     _expected_jail_files: "{{ fail2ban_custom_jail_files | map(attribute='name') | map('regex_replace', '^(.*)$', fail2ban_dir_config_path + '/jail.d/\\1.conf') | list }}"
   when: >
     fail2ban_custom_jail_files is defined and
     fail2ban_custom_jail_files | length > 0
 
-- name: "🗑️ Fail2ban | jails | Remove orphaned custom jail files"
+- name: "Fail2ban | jails | Remove orphaned custom jail files"
   become: true
   ansible.builtin.file:
     path: "{{ item.path }}"
@@ -76,12 +76,12 @@
     fail2ban_custom_jail_files | length > 0 and
     _existing_jail_files is defined and
     item.path not in _expected_jail_files
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
 
 # -----------------------------------------------------------------------------
 # 4. Configuration Summary
 # -----------------------------------------------------------------------------
-- name: "📊 Fail2ban | jails | Report custom jails configuration status"
+- name: "Fail2ban | jails | Report custom jails configuration status"
   ansible.builtin.debug:
     msg:
       - "✅ Fail2ban Custom Jails Configuration Completed Successfully:"

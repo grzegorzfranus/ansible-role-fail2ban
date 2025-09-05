@@ -16,13 +16,13 @@
 # -----------------------------------------------------------------------------
 # 1. Pre-Upgrade Validation
 # -----------------------------------------------------------------------------
-- name: "🔍 Fail2ban | upgrade | Check current Fail2ban version before upgrade"
+- name: "Fail2ban | upgrade | Check current Fail2ban version before upgrade"
   ansible.builtin.command: "fail2ban-client --version"
   register: _fail2ban_version_before
   failed_when: false
   changed_when: false
 
-- name: "📋 Fail2ban | upgrade | Display pre-upgrade information"
+- name: "Fail2ban | upgrade | Display pre-upgrade information"
   ansible.builtin.debug:
     msg:
       - "🔄 Fail2ban Package Upgrade Starting:"
@@ -33,7 +33,7 @@
 # -----------------------------------------------------------------------------
 # 2. Package Upgrade
 # -----------------------------------------------------------------------------
-- name: "🔄 Fail2ban | upgrade | Upgrade Fail2ban package to the latest version"
+- name: "Fail2ban | upgrade | Upgrade Fail2ban package to the latest version"
   become: true
   ansible.builtin.package:
     name: "{{ fail2ban_package_name }}"
@@ -43,18 +43,18 @@
   until: _fail2ban_upgrade_result is succeeded
   retries: 3
   delay: 10
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
 
 # -----------------------------------------------------------------------------
 # 3. Post-Upgrade Verification
 # -----------------------------------------------------------------------------
-- name: "🔍 Fail2ban | upgrade | Check Fail2ban version after upgrade"
+- name: "Fail2ban | upgrade | Check Fail2ban version after upgrade"
   ansible.builtin.command: "fail2ban-client --version"
   register: _fail2ban_version_after
   changed_when: false
   failed_when: _fail2ban_version_after.rc != 0
 
-- name: "🔍 Fail2ban | upgrade | Verify Fail2ban service status after upgrade"
+- name: "Fail2ban | upgrade | Verify Fail2ban service status after upgrade"
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
   register: _fail2ban_service_status
@@ -63,7 +63,7 @@
 # -----------------------------------------------------------------------------
 # 4. Upgrade Summary
 # -----------------------------------------------------------------------------
-- name: "📊 Fail2ban | upgrade | Report upgrade results"
+- name: "Fail2ban | upgrade | Report upgrade results"
   ansible.builtin.debug:
     msg:
       - "✅ Fail2ban Package Upgrade Completed Successfully:"

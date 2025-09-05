@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------------
 # 1. General Settings
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate role action settings"
+- name: "Fail2ban | assert | Validate role action settings"
   ansible.builtin.assert:
     that:
       - fail2ban_role_action is defined
@@ -20,7 +20,7 @@
     success_msg: "✅ Role action is valid: {{ fail2ban_role_action }}"
     quiet: true
 
-- name: "🧪 Fail2ban | assert | Validate role mode settings"
+- name: "Fail2ban | assert | Validate role mode settings"
   ansible.builtin.assert:
     that:
       - fail2ban_role_mode is defined
@@ -30,7 +30,7 @@
     success_msg: "✅ Role mode is valid: {{ fail2ban_role_mode if fail2ban_role_mode | length > 0 else 'default' }}"
     quiet: true
 
-- name: "🔍 Fail2ban | assert | Check nftables command availability when nftables mode is selected"
+- name: "Fail2ban | assert | Check nftables command availability when nftables mode is selected"
   ansible.builtin.command:
     cmd: nft --version
   register: _nftables_check_
@@ -39,7 +39,7 @@
   when: >
     fail2ban_role_mode == "nftables"
 
-- name: "🧪 Fail2ban | assert | Verify nftables availability for nftables mode"
+- name: "Fail2ban | assert | Verify nftables availability for nftables mode"
   ansible.builtin.assert:
     that:
       - _nftables_check_.rc == 0
@@ -49,7 +49,7 @@
   when: >
     fail2ban_role_mode == "nftables"
 
-- name: "🧪 Fail2ban | assert | Validate service enabled setting"
+- name: "Fail2ban | assert | Validate service enabled setting"
   ansible.builtin.assert:
     that:
       - fail2ban_service_enabled is defined
@@ -58,7 +58,7 @@
     success_msg: "✅ Service enabled setting is valid: {{ fail2ban_service_enabled }}"
     quiet: true
 
-- name: "🧪 Fail2ban | assert | Validate logrotate configuration setting"
+- name: "Fail2ban | assert | Validate logrotate configuration setting"
   ansible.builtin.assert:
     that:
       - fail2ban_configure_logrotate is defined
@@ -68,9 +68,21 @@
     quiet: true
 
 # -----------------------------------------------------------------------------
+# 1a. Repository Settings
+# -----------------------------------------------------------------------------
+- name: "Fail2ban | assert | Validate EPEL enablement setting"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_enable_epel is defined
+      - fail2ban_enable_epel is boolean
+    fail_msg: "❌ Invalid EPEL enablement setting '{{ fail2ban_enable_epel | default('undefined') }}'. Must be boolean (true/false)"
+    success_msg: "✅ EPEL enablement setting is valid: {{ fail2ban_enable_epel }}"
+    quiet: true
+
+# -----------------------------------------------------------------------------
 # 2. Logrotate Configuration
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate logrotate configuration variables"
+- name: "Fail2ban | assert | Validate logrotate configuration variables"
   ansible.builtin.assert:
     that:
       - fail2ban_logrotate_options is defined
@@ -99,7 +111,7 @@
 # -----------------------------------------------------------------------------
 # 3. Daemon Configuration
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate daemon configuration variables"
+- name: "Fail2ban | assert | Validate daemon configuration variables"
   ansible.builtin.assert:
     that:
       - fail2ban_socket is defined
@@ -122,7 +134,7 @@
 # -----------------------------------------------------------------------------
 # 4. Jail Configuration
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate jail configuration variables"
+- name: "Fail2ban | assert | Validate jail configuration variables"
   ansible.builtin.assert:
     that:
       - fail2ban_protocol is defined
@@ -138,7 +150,7 @@
 # -----------------------------------------------------------------------------
 # 5. Ban Settings
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate ban settings variables"
+- name: "Fail2ban | assert | Validate ban settings variables"
   ansible.builtin.assert:
     that:
       - fail2ban_bantime is defined
@@ -164,7 +176,15 @@
 # -----------------------------------------------------------------------------
 # 6. Email Notification Settings
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate email notification variables (enabled only)"
+- name: "Fail2ban | assert | Validate email notification enabled flag type"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_email_notification_enabled is defined
+      - fail2ban_email_notification_enabled is boolean
+    fail_msg: "❌ Invalid email notifications enabled setting '{{ fail2ban_email_notification_enabled | default('undefined') }}'. Must be boolean (true/false)"
+    success_msg: "✅ Email notifications enabled setting is valid: {{ fail2ban_email_notification_enabled }}"
+    quiet: true
+- name: "Fail2ban | assert | Validate email notification variables (enabled only)"
   ansible.builtin.assert:
     that:
       - fail2ban_email_notification_enabled is boolean
@@ -185,7 +205,7 @@
 # -----------------------------------------------------------------------------
 # 7. Custom Jail Configuration
 # -----------------------------------------------------------------------------
-- name: "🧪 Fail2ban | assert | Validate custom jail configuration variables"
+- name: "Fail2ban | assert | Validate custom jail configuration variables"
   ansible.builtin.assert:
     that:
       - fail2ban_custom_jail_files is defined
@@ -201,9 +221,42 @@
     quiet: true
 
 # -----------------------------------------------------------------------------
-# 8. Validation Summary
+# 8. Paths and Service/Package
 # -----------------------------------------------------------------------------
-- name: "📊 Fail2ban | assert | Report validation results"
+- name: "Fail2ban | assert | Validate service and package identifiers"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_service_name is defined
+      - fail2ban_service_name is string
+      - fail2ban_package_name is defined
+      - fail2ban_package_name is string
+    fail_msg: "❌ Invalid service or package identifiers. Both must be defined strings"
+    success_msg: "✅ Service and package identifiers are valid"
+    quiet: true
+
+- name: "Fail2ban | assert | Validate path variables are absolute"
+  ansible.builtin.assert:
+    that:
+      - fail2ban_dir_config_path is defined
+      - fail2ban_dir_config_path is string
+      - fail2ban_dir_config_path is search('^/.+')
+      - fail2ban_log_directory_path is defined
+      - fail2ban_log_directory_path is string
+      - fail2ban_log_directory_path is search('^/.+')
+      - fail2ban_logrotate_config_path is defined
+      - fail2ban_logrotate_config_path is string
+      - fail2ban_logrotate_config_path is search('^/.+')
+      - fail2ban_default_log_path is defined
+      - fail2ban_default_log_path is string
+      - fail2ban_default_log_path is search('^/.+')
+    fail_msg: "❌ One or more path variables are invalid. Paths must be absolute (start with '/')"
+    success_msg: "✅ All path variables are valid and absolute"
+    quiet: true
+
+# -----------------------------------------------------------------------------
+# 9. Validation Summary
+# -----------------------------------------------------------------------------
+- name: "Fail2ban | assert | Report validation results"
   ansible.builtin.debug:
     msg:
       - "✅ Fail2ban Variable Validation Completed Successfully:"

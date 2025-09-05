@@ -16,7 +16,7 @@
 # -----------------------------------------------------------------------------
 # 1. Service State Management
 # -----------------------------------------------------------------------------
-- name: "🔧 Fail2ban | configure | Configure service enablement"
+- name: "Fail2ban | configure | Configure service enablement"
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
@@ -25,25 +25,25 @@
 # -----------------------------------------------------------------------------
 # 2. Configuration File Deployment
 # -----------------------------------------------------------------------------
-- name: "🗑️ Fail2ban | configure | Remove default jail.d file for Debian"
+- name: "Fail2ban | configure | Remove default jail.d file for Debian"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_dir_config_path }}/jail.d/defaults-debian.conf"
     state: absent
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
     ansible_os_family | lower == "debian"
 
-- name: "🗑️ Fail2ban | configure | Remove default jail.d file for RedHat"
+- name: "Fail2ban | configure | Remove default jail.d file for RedHat"
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_dir_config_path }}/jail.d/00-firewalld.conf"
     state: absent
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
     ansible_os_family | lower == "redhat"
 
-- name: "🔧 Fail2ban | configure | Deploy Fail2ban main configuration file"
+- name: "Fail2ban | configure | Deploy Fail2ban main configuration file"
   become: true
   ansible.builtin.template:
     src: "fail2ban/fail2ban.local.j2"
@@ -52,9 +52,9 @@
     owner: root
     group: root
     backup: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
 
-- name: "🔧 Fail2ban | configure | Deploy Fail2ban jail configuration file"
+- name: "Fail2ban | configure | Deploy Fail2ban jail configuration file"
   become: true
   ansible.builtin.template:
     src: "fail2ban/jail.local.j2"
@@ -63,19 +63,20 @@
     owner: root
     group: root
     backup: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
 
-- name: "🔎 Fail2ban | configure | Validate configuration syntax"
+- name: "Fail2ban | configure | Validate configuration syntax"
   ansible.builtin.command: "fail2ban-client -t"
   changed_when: false
   register: _fail2ban_configtest_
   failed_when: _fail2ban_configtest_.rc != 0
-  when: fail2ban_service_enabled | bool
+  when: >
+    fail2ban_service_enabled | bool
 
 # -----------------------------------------------------------------------------
 # 3. Custom Configuration Files Deployment
 # -----------------------------------------------------------------------------
-- name: "🔍 Fail2ban | configure | Check if custom jails path exists (controller)"
+- name: "Fail2ban | configure | Check if custom jails path exists (controller)"
   delegate_to: localhost
   become: false
   ansible.builtin.stat:
@@ -84,7 +85,7 @@
   when: >
     fail2ban_custom_jails_path is defined
 
-- name: "📁 Fail2ban | configure | Deploy custom jail files"
+- name: "Fail2ban | configure | Deploy custom jail files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_jails_path }}/"
@@ -93,12 +94,12 @@
     group: root
     mode: "0644"
     backup: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
     fail2ban_custom_jails_path is defined and
     _custom_jails_path_stat_.stat.exists
 
-- name: "🔍 Fail2ban | configure | Check if custom actions path exists (controller)"
+- name: "Fail2ban | configure | Check if custom actions path exists (controller)"
   delegate_to: localhost
   become: false
   ansible.builtin.stat:
@@ -107,7 +108,7 @@
   when: >
     fail2ban_custom_actions_path is defined
 
-- name: "📁 Fail2ban | configure | Deploy custom action files"
+- name: "Fail2ban | configure | Deploy custom action files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_actions_path }}/"
@@ -116,12 +117,12 @@
     group: root
     mode: "0644"
     backup: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
     fail2ban_custom_actions_path is defined and
     _custom_actions_path_stat_.stat.exists
 
-- name: "🔍 Fail2ban | configure | Check if custom filters path exists (controller)"
+- name: "Fail2ban | configure | Check if custom filters path exists (controller)"
   delegate_to: localhost
   become: false
   ansible.builtin.stat:
@@ -130,7 +131,7 @@
   when: >
     fail2ban_custom_filters_path is defined
 
-- name: "📁 Fail2ban | configure | Deploy custom filter files"
+- name: "Fail2ban | configure | Deploy custom filter files"
   become: true
   ansible.builtin.copy:
     src: "{{ fail2ban_custom_filters_path }}/"
@@ -139,7 +140,7 @@
     group: root
     mode: "0644"
     backup: true
-  notify: "🔄 Fail2ban | handlers | Restart fail2ban service"
+  notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
     fail2ban_custom_filters_path is defined and
     _custom_filters_path_stat_.stat.exists
@@ -147,7 +148,7 @@
 # -----------------------------------------------------------------------------
 # 4. Systemd Service Management
 # -----------------------------------------------------------------------------
-- name: "📁 Fail2ban | configure | Create systemd service directory"
+- name: "Fail2ban | configure | Create systemd service directory"
   become: true
   ansible.builtin.file:
     path: "/etc/systemd/system/fail2ban.service.d"
@@ -158,7 +159,7 @@
   when: >
     fail2ban_role_mode == "nftables"
 
-- name: "🔧 Fail2ban | configure | Deploy systemd override configuration"
+- name: "Fail2ban | configure | Deploy systemd override configuration"
   become: true
   ansible.builtin.template:
     src: "systemd/override.conf.j2"
@@ -169,12 +170,12 @@
     backup: true
   when: >
     fail2ban_role_mode == "nftables"
-  notify: "🔄 Fail2ban | handlers | Reload systemd daemon"
+  notify: "Fail2ban | handlers | Reload systemd daemon"
 
 # -----------------------------------------------------------------------------
 # 5. Configuration Summary
 # -----------------------------------------------------------------------------
-- name: "📊 Fail2ban | configure | Report configuration status"
+- name: "Fail2ban | configure | Report configuration status"
   ansible.builtin.debug:
     msg:
       - "✅ Fail2ban Configuration Completed Successfully:"
