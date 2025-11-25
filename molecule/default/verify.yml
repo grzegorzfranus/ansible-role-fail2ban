@@ -18,7 +18,7 @@
       failed_when: false
       changed_when: false
       when: >
-        ansible_pkg_mgr == 'apt'
+        ansible_facts['pkg_mgr'] == 'apt'
 
     - name: "✅ Verify | Assert Fail2ban package is installed"
       ansible.builtin.assert:
@@ -28,7 +28,7 @@
         fail_msg: "❌ Fail2ban package is not installed"
         success_msg: "✅ Fail2ban package installation verified"
       when: >
-        ansible_pkg_mgr == 'apt'
+        ansible_facts['pkg_mgr'] == 'apt'
 
     - name: "🔍 Verify | Check if Fail2ban client binary exists"
       ansible.builtin.stat:
@@ -70,7 +70,7 @@
         path: "/lib/systemd/system/fail2ban.service"
       register: _service_file_
       when: >
-        ansible_service_mgr == 'systemd'
+        ansible_facts['service_mgr'] == 'systemd'
 
     - name: "✅ Verify | Assert service file exists"
       ansible.builtin.assert:
@@ -79,7 +79,7 @@
         fail_msg: "❌ Fail2ban service file not found"
         success_msg: "✅ Fail2ban service file verified"
       when: >
-        ansible_service_mgr == 'systemd'
+        ansible_facts['service_mgr'] == 'systemd'
 
     - name: "🔍 Verify | Check Fail2ban configuration files"
       ansible.builtin.stat:

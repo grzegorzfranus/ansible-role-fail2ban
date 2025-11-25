@@ -13,7 +13,7 @@
         cache_valid_time: 600
       changed_when: false
       when: >
-        ansible_os_family == "Debian"
+        ansible_facts['os_family'] == "Debian"
 
     - name: "⏳ Converge | Wait for systemd to complete initialization"
       ansible.builtin.systemd:
@@ -24,7 +24,7 @@
       retries: 30
       delay: 5
       when: >
-        ansible_service_mgr == 'systemd'
+        ansible_facts['service_mgr'] == 'systemd'
       changed_when: false
       failed_when: false
 

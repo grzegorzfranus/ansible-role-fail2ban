@@ -32,7 +32,7 @@
     state: absent
   notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
-    ansible_os_family | lower == "debian"
+    ansible_facts['os_family'] | lower == "debian"
 
 - name: "Fail2ban | configure | Remove default jail.d file for RedHat"
   become: true
@@ -41,7 +41,7 @@
     state: absent
   notify: "Fail2ban | handlers | Restart fail2ban service"
   when: >
-    ansible_os_family | lower == "redhat"
+    ansible_facts['os_family'] | lower == "redhat"
 
 - name: "Fail2ban | configure | Deploy Fail2ban main configuration file"
   become: true

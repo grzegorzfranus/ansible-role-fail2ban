@@ -14,7 +14,7 @@
         mode: '0400'
         owner: root
         group: root
-      when: ansible_service_mgr == 'systemd'
+      when: ansible_facts['service_mgr'] == 'systemd'
 
     - name: "🔄 Prepare | Update apt cache"
       ansible.builtin.apt:
@@ -22,7 +22,7 @@
         cache_valid_time: 600
       changed_when: false
       when: >
-        ansible_os_family == "Debian"
+        ansible_facts['os_family'] == "Debian"
 
     - name: "⏳ Prepare | Wait for systemd to complete initialization"
       ansible.builtin.systemd:
@@ -33,7 +33,7 @@
       retries: 30
       delay: 5
       when: >
-        ansible_service_mgr == 'systemd'
+        ansible_facts['service_mgr'] == 'systemd'
       changed_when: false
       failed_when: false
 

@@ -56,7 +56,7 @@ This role requires root access, so either configure it in your inventory files, 
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `fail2ban_role_action` | Define which parts of the role to execute (Options: 'all', 'install', 'configure', 'logrotate', 'custom_jails', 'upgrade') | `"all"` |
+| `fail2ban_role_action` | Define which parts of the role to execute. Options: `all`, `install`, `configure`, `logrotate`, `custom_jails`, `upgrade`. Note: `all` excludes `upgrade` - use explicit `upgrade` action or `--tags upgrade` | `"all"` |
 | `fail2ban_role_mode` | Define role mode for firewall backend (nftables/iptables) | `""` |
 | `fail2ban_service_enabled` | Enable/disable Fail2ban service on boot | `true` |
 | `fail2ban_configure_logrotate` | Enable/disable logrotate configuration for Fail2ban logs | `true` |
@@ -114,7 +114,7 @@ This role requires root access, so either configure it in your inventory files, 
 |----------|-------------|---------|
 | `fail2ban_email_notification_enabled` | Enable/disable email notifications | `false` |
 | `fail2ban_destemail` | Destination email for notifications | `"root@localhost"` |
-| `fail2ban_sender` | Sender email for notifications | `"root@{{ ansible_fqdn }}"` |
+| `fail2ban_sender` | Sender email for notifications | `"root@{{ ansible_facts['fqdn'] }}"` |
 | `fail2ban_mta` | Mail transport agent (sendmail, mail) | `"sendmail"` |
 
 ### 7. 🛠️ Custom Jail Configuration
@@ -276,7 +276,10 @@ Available tags for selective execution:
 | `install` | Install Fail2ban packages | Package installation |
 | `configure` | Configure Fail2ban service | Service configuration |
 | `logrotate` | Configure logrotate | Log rotation setup |
-| `upgrade` | Upgrade Fail2ban packages | Package upgrades |
+| `never` | Never run unless explicitly called | Used by upgrade task |
+| `upgrade` | Upgrade Fail2ban packages | Explicit package upgrades |
+
+> **⚠️ Important:** The `upgrade` tag has `never` applied, meaning it will not run during normal execution. You must explicitly request it using `--tags upgrade` or set `fail2ban_role_action: "upgrade"`.
 
 **Example with tags:**
 ```bash
@@ -286,8 +289,11 @@ ansible-playbook playbook.yml --tags "install"
 # Configure without installation
 ansible-playbook playbook.yml --tags "configure"
 
-# Everything except upgrades
-ansible-playbook playbook.yml --skip-tags "upgrade"
+# Upgrade Fail2ban to latest version (explicit action required)
+ansible-playbook playbook.yml --tags "upgrade"
+
+# Or use the role action variable
+ansible-playbook playbook.yml -e "fail2ban_role_action=upgrade"
 ```
 
 ## 📁 File Structure

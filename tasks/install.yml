@@ -18,11 +18,11 @@
 - name: "Fail2ban | install | Install EPEL package for Oracle Linux distribution"
   become: true
   ansible.builtin.package:
-    name: "oracle-epel-release-el{{ ansible_distribution_major_version }}"
+    name: "oracle-epel-release-el{{ ansible_facts['distribution_major_version'] }}"
     state: present
     update_cache: true
   when: >
-    ansible_os_family | lower == "redhat" and
+    ansible_facts['os_family'] | lower == "redhat" and
     ansible_facts['distribution'] | lower == "oraclelinux"
 
 - name: "Fail2ban | install | Install EPEL package for RedHat family"
@@ -32,7 +32,7 @@
     state: present
     update_cache: true
   when: >
-    ansible_os_family | lower == "redhat" and
+    ansible_facts['os_family'] | lower == "redhat" and
     ansible_facts['distribution'] | lower != "oraclelinux" and
     (fail2ban_enable_epel | default(true)) | bool
 
@@ -66,4 +66,4 @@
       - "   Installed Version: {{ _fail2ban_installed_version.stdout }}"
       - "   Package Name: {{ fail2ban_package_name }}"
       - "   Installation Changed: {{ 'Yes' if _fail2ban_package_install_result.changed else 'No (already installed)' }}"
-      - "   Package Manager: {{ ansible_pkg_mgr }}"
+      - "   Package Manager: {{ ansible_facts['pkg_mgr'] }}"

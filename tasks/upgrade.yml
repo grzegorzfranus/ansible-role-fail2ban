@@ -28,7 +28,7 @@
       - "🔄 Fail2ban Package Upgrade Starting:"
       - "   Current Version: {{ _fail2ban_version_before.stdout if _fail2ban_version_before.rc == 0 else 'Not installed or not responding' }}"
       - "   Package Name: {{ fail2ban_package_name }}"
-      - "   Package Manager: {{ ansible_pkg_mgr }}"
+      - "   Package Manager: {{ ansible_facts['pkg_mgr'] }}"
 
 # -----------------------------------------------------------------------------
 # 2. Package Upgrade
@@ -71,4 +71,4 @@
       - "   Current Version: {{ _fail2ban_version_after.stdout }}"
       - "   Package Changed: {{ 'Yes' if _fail2ban_upgrade_result.changed else 'No (already latest)' }}"
       - "   Service Status: {{ _fail2ban_service_status.status.ActiveState | default('unknown') if _fail2ban_service_status.status is defined else 'unknown' }}"
-      - "   Package Manager: {{ ansible_pkg_mgr }}"
+      - "   Package Manager: {{ ansible_facts['pkg_mgr'] }}"

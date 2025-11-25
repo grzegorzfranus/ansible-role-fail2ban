@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-25
+
+### Changed 🔄
+- Migrated all deprecated `ansible_*` top-level fact variables to `ansible_facts['*']` syntax for Ansible 2.24 compatibility
+- Updated `tasks/upgrade.yml`: replaced `ansible_pkg_mgr` with `ansible_facts['pkg_mgr']`
+- Updated `tasks/install.yml`: replaced `ansible_distribution_major_version`, `ansible_os_family`, `ansible_pkg_mgr` with `ansible_facts[...]` equivalents
+- Updated `tasks/configure.yml`: replaced `ansible_os_family` with `ansible_facts['os_family']`
+- Updated `tasks/logrotate.yml`: replaced `ansible_os_family` with `ansible_facts['os_family']`
+- Updated `defaults/main.yml`: replaced `ansible_fqdn` with `ansible_facts['fqdn']` in `fail2ban_sender` default
+- Updated `molecule/default/prepare.yml`: replaced `ansible_service_mgr`, `ansible_os_family` with `ansible_facts[...]`
+- Updated `molecule/default/verify.yml`: replaced `ansible_pkg_mgr`, `ansible_service_mgr` with `ansible_facts[...]`
+- Updated `molecule/default/converge.yml`: replaced `ansible_os_family`, `ansible_service_mgr` with `ansible_facts[...]`
+- Updated README.md documentation to reflect new variable syntax
+- **Breaking:** Upgrade action is now excluded from `all` role action - requires explicit `fail2ban_role_action: 'upgrade'` or `--tags upgrade`
+- Added `never` tag to upgrade task to prevent accidental package upgrades during normal role execution
+
+### Fixed 🔧
+- Resolved Ansible 2.20+ deprecation warnings about `INJECT_FACTS_AS_VARS`
+- Role is now fully compatible with upcoming Ansible 2.24 where top-level fact injection will be removed
+- Fixed illogical behavior where `fail2ban_role_action: 'all'` would run upgrade immediately after install
+
 ## [1.1.0] - 2025-08-11
 ## [1.1.1] - 2025-09-05
 

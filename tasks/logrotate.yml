@@ -39,7 +39,7 @@
 - name: "Fail2ban | logrotate | Deploy logrotate configuration file"
   become: true
   ansible.builtin.template:
-    src: "logrotate/{{ ansible_os_family | lower }}/fail2ban.j2"
+    src: "logrotate/{{ ansible_facts['os_family'] | lower }}/fail2ban.j2"
     dest: "{{ fail2ban_logrotate_config_path }}"
     owner: root
     group: root

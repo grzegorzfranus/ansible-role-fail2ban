@@ -20,7 +20,10 @@
 # -----------------------------------------------------------------------------
 # Role execution control and basic service configuration
 
-# Define which parts of the role to execute (Options: 'all', 'install', 'configure', 'logrotate', 'custom_jails', 'upgrade')
+# Define which parts of the role to execute
+# Options: 'all', 'install', 'configure', 'logrotate', 'custom_jails', 'upgrade'
+# Note: 'all' includes install, configure, custom_jails, and logrotate but NOT upgrade.
+#       Use 'upgrade' explicitly or --tags upgrade to upgrade the package.
 fail2ban_role_action: "all"
 
 # Define role mode (configure for nftables/iptables)
@@ -143,7 +146,7 @@ fail2ban_email_notification_enabled: false
 fail2ban_destemail: "root@localhost"
 
 # Sender email address used solely for some actions
-fail2ban_sender: "root@{{ ansible_fqdn }}"
+fail2ban_sender: "root@{{ ansible_facts['fqdn'] }}"
 
 # MTA for the mailing. Since 0.8.1 upstream fail2ban uses sendmail
 # Change mta configuration parameter to mail if you want to revert to conventional 'mail'.

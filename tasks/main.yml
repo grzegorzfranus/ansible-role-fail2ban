@@ -13,7 +13,7 @@
 #   4. Configure Fail2ban service
 #   5. Configure custom jails
 #   6. Configure logrotate
-#   7. Upgrade Fail2ban package
+#   7. Upgrade Fail2ban package (explicit action only, excluded from 'all')
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -94,12 +94,15 @@
     - logrotate
 
 # -----------------------------------------------------------------------------
-# 7. Upgrade
+# 7. Upgrade (explicit action only - never runs with 'all')
 # -----------------------------------------------------------------------------
+# Note: Upgrade is intentionally excluded from 'all' action to prevent
+# automatic package upgrades. Use fail2ban_role_action: 'upgrade' or
+# --tags upgrade to explicitly upgrade the package.
 - name: "Fail2ban | upgrade | Execute upgrade tasks"
   ansible.builtin.include_tasks: upgrade.yml
   when: >
-    fail2ban_role_action in ['all', 'upgrade']
+    fail2ban_role_action == 'upgrade'
   tags:
-    - always
+    - never
     - upgrade
