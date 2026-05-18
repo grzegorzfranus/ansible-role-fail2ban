@@ -1,5 +1,5 @@
 ---
-name: 🧪 Test & Validation Pipeline
+name: CI/CD
 
 on:
   push:
@@ -15,27 +15,27 @@ on:
 
 jobs:
   lint:
-    name: 🧪 Lint code
+    name: 1. Lint Code
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Check out the codebase
-        uses: actions/checkout@v4
+      - name: 1.1 Checkout Code
+        uses: actions/checkout@v6
 
-      - name: 🐍 Set up Python 3
-        uses: actions/setup-python@v5
+      - name: 1.2 Setup Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
-      - name: 📦 Install dependencies
+      - name: 1.3 Install Dependencies
         run: |
           pip3 install yamllint
 
-      - name: 🔍 Lint code
+      - name: 1.4 Lint Code
         run: |
           yamllint .
 
   molecule:
-    name: 🧪 Molecule test
+    name: 2. Molecule Test
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -53,19 +53,19 @@ jobs:
             distro: debian11
 
     steps:
-      - name: 📥 Check out the codebase
-        uses: actions/checkout@v4
+      - name: 2.1 Checkout Code
+        uses: actions/checkout@v6
 
-      - name: 🐍 Set up Python 3
-        uses: actions/setup-python@v5
+      - name: 2.2 Setup Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
-      - name: 📦 Install dependencies
+      - name: 2.3 Install Dependencies
         run: |
           pip3 install ansible molecule molecule-plugins[docker] docker ansible-lint
 
-      - name: 🚀 Run molecule test
+      - name: 2.4 Run Molecule Test
         run: |
           molecule test --scenario-name ${{ matrix.scenario }}
         env:
