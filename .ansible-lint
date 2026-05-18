@@ -1,8 +1,8 @@
+---
 skip_list:
   - role-name
-  - meta-no-info
 
-profile: min
+profile: shared
 
 exclude_paths:
   - molecule/**
