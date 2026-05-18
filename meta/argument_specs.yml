@@ -1,0 +1,230 @@
+---
+argument_specs:
+  main:
+    short_description: "Install, configure and manage Fail2ban intrusion prevention system"
+    description:
+      - "Installs Fail2ban, configures the daemon, deploys jail and logrotate settings."
+      - "Supports Ubuntu 22.04/24.04, Debian 11/12, Rocky Linux 9, and EL9."
+    author: "Grzegorz Franus"
+
+    options:
+      # General Settings
+      fail2ban_role_action:
+        description: "Define which parts of the role to execute. 'all' excludes 'upgrade'."
+        type: str
+        default: "all"
+        choices:
+          - all
+          - install
+          - configure
+          - logrotate
+          - custom_jails
+          - upgrade
+
+      fail2ban_role_mode:
+        description: "Define role mode for firewall backend. Empty string for default."
+        type: str
+        default: ""
+
+      fail2ban_service_enabled:
+        description: "Enable or disable Fail2ban service on boot"
+        type: bool
+        default: true
+
+      fail2ban_configure_logrotate:
+        description: "Enable or disable logrotate configuration for Fail2ban logs"
+        type: bool
+        default: true
+
+      fail2ban_enable_epel:
+        description: "Enable EPEL repository on EL-family systems (ignored on non-EL)"
+        type: bool
+        default: true
+
+      # Logrotate Configuration
+      fail2ban_logrotate_options:
+        description: "Dictionary of logrotate settings for Fail2ban log files"
+        type: dict
+        default:
+          archive_directory_path: "/var/log/fail2ban"
+          frequency: "daily"
+          count: 30
+          missingok: true
+          compress: true
+          nocreate: false
+          copytruncate: false
+          dateext: true
+        options:
+          archive_directory_path:
+            description: "Directory where archived logs will be stored"
+            type: str
+          frequency:
+            description: "How often to rotate logs"
+            type: str
+            choices:
+              - hourly
+              - daily
+              - weekly
+              - monthly
+          count:
+            description: "Number of rotated log files to keep"
+            type: int
+          missingok:
+            description: "Do not error if log file is missing"
+            type: bool
+          compress:
+            description: "Compress rotated logs using gzip"
+            type: bool
+          nocreate:
+            description: "Do not create new empty log file after rotation"
+            type: bool
+          copytruncate:
+            description: "Use copy and truncate instead of move"
+            type: bool
+          dateext:
+            description: "Add date extension to rotated logs"
+            type: bool
+
+      # Daemon Configuration
+      fail2ban_socket:
+        description: "Socket file for daemon communication"
+        type: str
+        default: "/var/run/fail2ban/fail2ban.sock"
+
+      fail2ban_pidfile:
+        description: "PID file for the daemon"
+        type: str
+        default: "/var/run/fail2ban/fail2ban.pid"
+
+      fail2ban_loglevel:
+        description: "Log level for the Fail2ban daemon"
+        type: str
+        default: "INFO"
+        choices:
+          - CRITICAL
+          - ERROR
+          - WARNING
+          - NOTICE
+          - INFO
+          - DEBUG
+
+      fail2ban_logtarget:
+        description: "Log target (file path, SYSTEMD-JOURNAL, SYSLOG, STDERR, or STDOUT)"
+        type: str
+        default: "/var/log/fail2ban.log"
+
+      fail2ban_syslog_target:
+        description: "Syslog target for Fail2ban"
+        type: str
+        default: "/var/log/fail2ban.log"
+
+      fail2ban_syslog_facility:
+        description: "Syslog facility number"
+        type: int
+        default: 1
+
+      # Jail Configuration
+      fail2ban_protocol:
+        description: "Default protocol to use in jail definitions"
+        type: str
+        default: "tcp"
+
+      fail2ban_ignoreself:
+        description: "Whether to ignore the local IP addresses"
+        type: bool
+        default: true
+
+      fail2ban_ignoreip:
+        description: "List of IPs or CIDR ranges to never ban"
+        type: list
+        elements: str
+        default:
+          - "127.0.0.1/8"
+          - "::1"
+
+      # Ban Settings
+      fail2ban_bantime:
+        description: "Duration that a host is banned"
+        type: str
+        default: "10m"
+
+      fail2ban_findtime:
+        description: "Time window to count failures"
+        type: str
+        default: "10m"
+
+      fail2ban_maxretry:
+        description: "Number of failures before a host is banned"
+        type: int
+        default: 5
+
+      fail2ban_bantime_increment:
+        description: "Enable progressive ban time"
+        type: bool
+        default: true
+
+      fail2ban_bantime_rndtime:
+        description: "Random time to add to ban time to prevent botnets calculating unban time"
+        type: str
+        default: "30m"
+
+      fail2ban_bantime_maxtime:
+        description: "Maximum ban time"
+        type: str
+        default: "60d"
+
+      fail2ban_bantime_factor:
+        description: "Multiplier for progressive ban calculation"
+        type: int
+        default: 2
+
+      fail2ban_dbpurgeage:
+        description: "Time after which to purge database entries"
+        type: str
+        default: "30d"
+
+      # Email Notification Settings
+      fail2ban_email_notification_enabled:
+        description: "Enable or disable email notifications on ban/unban events"
+        type: bool
+        default: false
+
+      fail2ban_destemail:
+        description: "Destination email address for notifications"
+        type: str
+        default: "root@localhost"
+
+      fail2ban_sender:
+        description: "Sender email address for notifications"
+        type: str
+        default: "root@{{ ansible_facts['fqdn'] }}"
+
+      fail2ban_mta:
+        description: "Mail transport agent for notifications"
+        type: str
+        default: "sendmail"
+        choices:
+          - sendmail
+          - mail
+
+      # Custom Jail Configuration
+      fail2ban_custom_jail_files:
+        description: "List of custom jail configurations (each item requires 'name' and 'content' keys)"
+        type: list
+        elements: dict
+        default: []
+
+      fail2ban_custom_jails_path:
+        description: "Path to directory containing custom jail files to copy"
+        type: str
+        default: "files/jail.d"
+
+      fail2ban_custom_actions_path:
+        description: "Path to directory containing custom action files to copy"
+        type: str
+        default: "files/action.d"
+
+      fail2ban_custom_filters_path:
+        description: "Path to directory containing custom filter files to copy"
+        type: str
+        default: "files/filter.d"

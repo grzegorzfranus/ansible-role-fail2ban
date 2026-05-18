@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-05-18
+
+### Added
+- Created `meta/argument_specs.yml` for Ansible-native argument validation (CoP §3.1.20)
+- Added per-item key validation for `fail2ban_custom_jail_files` entries in assert.yml
+
+### Changed
+- Upgraded ansible-lint profile from `min` to `shared` (CoP compliance)
+- Refactored `tasks/assert.yml` to runtime-only checks (type/choice validation moved to argument_specs)
+- Renamed all internal registered variables to `__fail2ban_` double-underscore prefix (CoP §3.1.4)
+- Added `verbosity: 1` to all diagnostic debug tasks (CoP §5.4)
+- Converted all `when:` conditions from folded scalar to YAML list format
+- Simplified task file headers to single-line comments (Tailscale pattern)
+- Removed all emoji characters from task names, assert messages, and debug output
+- Updated `min_ansible_version` from `2.15` to `2.16`
+- Cleaned up `meta/main.yml` galaxy tags (removed redundant OS-specific entries)
+
+### Fixed
+- Removed `meta-no-info` from ansible-lint skip list (meta properly configured)
+- README now documents per-task `become: true` instead of recommending global privilege escalation
+
+### Documentation
+- Complete README rewrite following Red Hat CoP §3.1.17 and Tailscale reference pattern
+- Added Role Properties section (Idempotent, Atomic, Check Mode, Diff Mode)
+- Added Role Output section documenting `__fail2ban_` internal fact prefix
+- All 37 variables (31 defaults + 6 internal) documented in README tables
+- Removed all emoji markers from CHANGELOG section headers
+
 ## [1.2.1] - 2026-05-18
 
 ### Fixed
@@ -16,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2025-11-25
 
-### Changed 🔄
+### Changed
 - Migrated all deprecated `ansible_*` top-level fact variables to `ansible_facts['*']` syntax for Ansible 2.24 compatibility
 - Updated `tasks/upgrade.yml`: replaced `ansible_pkg_mgr` with `ansible_facts['pkg_mgr']`
 - Updated `tasks/install.yml`: replaced `ansible_distribution_major_version`, `ansible_os_family`, `ansible_pkg_mgr` with `ansible_facts[...]` equivalents
@@ -30,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** Upgrade action is now excluded from `all` role action - requires explicit `fail2ban_role_action: 'upgrade'` or `--tags upgrade`
 - Added `never` tag to upgrade task to prevent accidental package upgrades during normal role execution
 
-### Fixed 🔧
+### Fixed
 - Resolved Ansible 2.20+ deprecation warnings about `INJECT_FACTS_AS_VARS`
 - Role is now fully compatible with upcoming Ansible 2.24 where top-level fact injection will be removed
 - Fixed illogical behavior where `fail2ban_role_action: 'all'` would run upgrade immediately after install
@@ -38,26 +66,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-08-11
 ## [1.1.1] - 2025-09-05
 
-### Changed 🔄
+### Changed
 - Normalized task and handler names to remove emojis and follow `Rolename | action | description`.
 - Updated tags to allowed set: replaced `vars` with `setup, init`; `asserts` with `validate`; removed `custom_jails` tag.
 - Converted inline `when:` conditions to folded style where required.
 - Documentation updated: tags table reflects allowed tags; variables table verified and aligned with defaults.
 
-### Added ✅
+### Added
 - Assertions for `fail2ban_enable_epel` and for service/package identifiers.
 - Assertions ensuring path variables are absolute and defined.
 
-### Fixed 🔧
+### Fixed
 - Consistency between task notify names and handler names.
 
-### Added ✅
+### Added
 - Molecule tuned to test multiple platforms: Rocky 9, Ubuntu 22.04/24.04, Debian 12
 - Documentation now lists all variables, including internal service, package, and path variables
 - New variable `fail2ban_enable_epel` to control EPEL on EL-family systems
 - Configuration validation step using `fail2ban-client -t` before restart
 
-### Changed 🔄
+### Changed
 - Updated `meta/main.yml` to align supported platforms with `ansible-role-github-runner`
 - Switched deprecated `with_items` to `loop` in tasks and Molecule verify playbook
 - Replaced shell-based permission step in Molecule `prepare.yml` with `ansible.builtin.file`
@@ -66,22 +94,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controller-side checks for local custom file paths in configuration deployment
 - Systemd override directory permissions set to `0755`
 
-### Fixed 🔧
+### Fixed
 - README supported OS matrix reordered and aligned with meta
 - Molecule prepare verified to avoid unnecessary shell usage
 
 ## [1.0.2] - 2025-07-04
 
-### Added ✅
+### Added
 - Added molecule.yml configuration file for Docker-based testing
 - Enhanced Molecule testing framework with proper Docker platform configuration
 - Added support for environment variable-based testing configuration
 
-### Fixed 🔧
+### Fixed
 - Fixed handler name mismatch causing "handler not found" errors
-- Added emojis to notify statements in tasks to match handler names
-- Corrected all notify statements to use "🔄 Fail2ban | handlers | Restart fail2ban service"
-- Fixed all notify statements to use "🔄 Fail2ban | handlers | Reload systemd daemon"
 - Fixed task naming convention to use file-based categories instead of module types
 - Corrected all task names to follow "Fail2ban | [filename] | [description]" pattern
 - Fixed yamllint errors: removed trailing spaces and added newline at end of file
@@ -89,61 +114,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - 2024-12-19
 
-### Added ✅
-- Status emojis in ALL task names following core development rules
+### Added
 - Enhanced task naming with "Fail2ban | category | description" pattern
 - Comprehensive validation messages with success/failure indicators
 - Enhanced error reporting and debugging capabilities
 - Post-installation and post-upgrade verification tasks
 - Configuration summary reporting in all task files
-- Enhanced template headers with proper documentation
-- Comprehensive README formatting with status emojis throughout
 - Advanced playbook examples with NFTables integration
 - Detailed troubleshooting section with common solutions
-- File structure documentation with emoji indicators
+- File structure documentation
 - Development workflow and testing instructions
 
-### Fixed 🔧
+### Fixed
 - Converted all legacy ansible modules to ansible.builtin format
 - Fixed ansible-lint violations (no-handler, package-latest)
 - Removed trailing spaces and added missing newlines (yamllint compliance)
 - Improved conditional execution patterns consistency
 - Enhanced systemd integration with proper handler usage
 - Fixed orphaned jail file cleanup logic in custom_jails.yml
-- Corrected assert task emojis to use 🧪 pattern matching example standards
 
-### Changed 🔄
+### Changed
 - ALL task files updated with Ansible best practices
-- Enhanced section headers with clear comment blocks
 - Improved YAML dictionary format for all module parameters
 - Updated handlers with enhanced logging and error handling
-- Enhanced Molecule test files with status emojis and better structure
-- Upgraded template documentation following Ansible standards
 - README.md completely redesigned with enhanced formatting and structure
 - Consistent tagging strategy across all task files
-- Assert tasks standardized with 🧪 emoji following .cursor/examples pattern
-
-### Improved 🚀
-- **Task Naming**: Consistent emoji-based naming throughout all tasks
-- **Documentation**: Enhanced inline documentation and comments
-- **Validation**: Comprehensive variable validation with detailed error messages
-- **Reporting**: Status reporting after each major operation
-- **Testing**: Enhanced Molecule tests with better verification
-- **Linting**: Full compliance with ansible-lint and yamllint standards
-- **User Experience**: Better feedback and status indicators
-- **Maintainability**: Improved code organization and structure
-
-### Code Quality 🧪
-- 100% ansible-lint compliance achieved
-- 100% yamllint compliance achieved
-- Enhanced error handling throughout all tasks
-- Improved idempotency with better change detection
-- Added backup options for configuration file changes
-- Enhanced retry logic for package operations
 
 ## [1.0.0] - 2024-03-20
 
-### Added ✅
+### Added
 - Initial release of ansible-role-fail2ban
 - Fail2ban package installation and configuration
 - Support for Ubuntu 22.04 (Jammy Jellyfish)
@@ -158,17 +157,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive variable validation
 - Systemd service integration
 - Role action control (install, configure, upgrade, etc.)
-
-### Features 🚀
-- **Multi-OS Support**: Ubuntu, Debian, Rocky Linux, EL
-- **Flexible Configuration**: Comprehensive variable system
-- **Custom Jails**: Easy deployment of custom jail files
-- **Security**: Progressive ban times and advanced filtering
-- **Monitoring**: Built-in logrotate and service management
-- **Firewall Integration**: Support for both nftables and iptables
-
-### Security 🔒
-- Default ignore list includes localhost and IPv6
-- Configurable IP whitelist support
-- Progressive ban time to handle repeat offenders
-- Email notifications for security events

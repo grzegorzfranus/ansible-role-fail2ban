@@ -1,28 +1,14 @@
 ---
-# =============================================================================
-# Ansible Role: Fail2ban - Logrotate Tasks
-# =============================================================================
-# This file configures log rotation for Fail2ban log files to ensure they
-# don't grow indefinitely and are properly archived. The logrotate configuration
-# is customizable via role variables following Ansible best practices.
-#
-# Flow:
-# 1. Archive Directory Setup
-# 2. Logrotate Configuration Deployment
-#
-# The logrotate configuration is customizable via role variables.
-# =============================================================================
+# Fail2ban Logrotate — Configure log rotation for Fail2ban log files.
 
-# -----------------------------------------------------------------------------
-# 1. Archive Directory Setup
-# -----------------------------------------------------------------------------
-- name: "Fail2ban | logrotate | Check if archive log directory exists"
+# Archive Directory Setup
+- name: Fail2ban | logrotate | Check if archive log directory exists
   become: true
   ansible.builtin.stat:
     path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
-  register: _archive_log_directory_stat_
+  register: __fail2ban_archive_log_directory_stat
 
-- name: "Fail2ban | logrotate | Create archive log directory if needed"
+- name: Fail2ban | logrotate | Create archive log directory if needed
   become: true
   ansible.builtin.file:
     path: "{{ fail2ban_logrotate_options.archive_directory_path }}"
@@ -30,13 +16,11 @@
     owner: root
     group: root
     mode: "0755"
-  when: >
-    not _archive_log_directory_stat_.stat.exists
+  when:
+    - not __fail2ban_archive_log_directory_stat.stat.exists
 
-# -----------------------------------------------------------------------------
-# 2. Logrotate Configuration Deployment
-# -----------------------------------------------------------------------------
-- name: "Fail2ban | logrotate | Deploy logrotate configuration file"
+# Logrotate Configuration Deployment
+- name: Fail2ban | logrotate | Deploy logrotate configuration file
   become: true
   ansible.builtin.template:
     src: "logrotate/{{ ansible_facts['os_family'] | lower }}/fail2ban.j2"

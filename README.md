@@ -1,4 +1,4 @@
-# 🛡️ Ansible Role: Fail2ban
+# Ansible Role: Fail2ban
 
 |Source|Version|Tests|License|
 |------|-------|-------|-------|
@@ -6,68 +6,122 @@
 
 This Ansible role installs, configures, and manages **Fail2ban**, an intrusion prevention framework that protects systems from brute-force attacks and other malicious behavior. It works by monitoring log files for selected patterns and taking action when these patterns match malicious activity.
 
-## 🚀 Main Actions
+## Features
 
-- 📦 **Install** Fail2ban package and dependencies
-- 🔧 **Configure** Fail2ban core settings  
-- 🛠️ **Set up** ban policies and notification settings
-- 🏗️ **Deploy** custom jail configurations
-- 🔍 **Configure** custom filters for specialized services
-- 📝 **Set up** logrotate for Fail2ban logs (optional)
-- 🔄 **Upgrade** Fail2ban package (when requested)
+- **Package Management**: Install and upgrade Fail2ban package with EPEL support for EL-family systems
+- **Daemon Configuration**: Full control over logging, socket, PID, and syslog settings
+- **Jail Management**: Deploy core jail configuration and custom jail files with orphan cleanup
+- **Ban Policies**: Progressive ban times, configurable thresholds, and IP whitelisting
+- **Email Notifications**: Optional email alerts on ban/unban events
+- **Custom Filters**: Included filters for OpenVPN and FreeIPA GUI
+- **Logrotate**: Automated log rotation with OS-specific templates
+- **NFTables Support**: Systemd override for nftables firewall backend
+- **Comprehensive Validation**: Argument specs and runtime assertions for all variables
 
-## 📋 Requirements
+## Requirements
 
-### 🖥️ Supported Operating Systems
-List of officially supported operating systems:
+### Supported operating systems
+
+List of officially supported operating systems for this role:
 
 | OS Family | Version | Status |
-|-----------|---------|---------|
-| Ubuntu | 22.04 (Jammy) | ✅ **Supported** |
-| Ubuntu | 24.04 (Noble) | ✅ **Supported** |
-| Debian | 12 (Bookworm) | ✅ **Supported** |
-| Debian | 11 (Bullseye) | ✅ **Supported** |
-| Rocky Linux | 9 | ✅ **Supported** |
-| EL | 9 | ✅ **Supported** |
+|-----------|---------|--------|
+| Ubuntu | 24.04 (Noble) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| Ubuntu | 22.04 (Jammy) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| Debian | 12 (Bookworm) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| Debian | 11 (Bullseye) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| Rocky Linux | 9 | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| EL | 9 | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
 
-### 🔧 Software Requirements
+### Ansible version
 
-| Component | Version | Status |
-|-----------|---------|---------|
-| **Ansible** | >= 2.15 | ✅ **Required** |
-| **Python** | >= 3.9 | ✅ **Required** |
+Ansible >= 2.16
 
-### ⚠️ Setup Module
+### Python version
+
+Python >= 3.9
+
+### Setup module
+
 The role uses facts gathered by Ansible on the remote host. If you disable the Setup module in your playbook, the role will not work properly.
 
-### 🔐 Root Access
-This role requires root access, so either configure it in your inventory files, run it in a playbook with a global `become: true` or invoke the role in your playbook like:
+### Root access
+
+This role requires root access for package installation and service management. Each task explicitly defines `become: true` where privilege escalation is needed — there is no global `become: true` requirement.
+
+## Quick Start
+
+### 1. Basic Fail2ban Installation
 
 ```yaml
-- hosts: servers
-  become: true
+---
+- name: Configure Fail2ban Protection
+  hosts: servers
   roles:
     - role: grzegorzfranus.fail2ban
 ```
 
-## ⚙️ Role Variables
+### 2. Custom Ban Policy
 
-### 1. 🎯 General Settings
+```yaml
+---
+- name: Configure Fail2ban with Custom Policy
+  hosts: servers
+  vars:
+    fail2ban_ignoreip:
+      - 127.0.0.1/8
+      - ::1
+      - 192.168.1.0/24
+    fail2ban_bantime: "1h"
+    fail2ban_findtime: "30m"
+    fail2ban_maxretry: 3
+  roles:
+    - role: grzegorzfranus.fail2ban
+```
+
+### 3. Run the playbook
+
+```bash
+ansible-playbook -i inventory fail2ban-setup.yml
+```
+
+## Configuration
+
+### Default Configuration
+
+The role comes with production-ready defaults:
+
+```yaml
+# Role behavior
+fail2ban_role_action: "all"
+fail2ban_service_enabled: true
+fail2ban_configure_logrotate: true
+
+# Ban settings
+fail2ban_bantime: "10m"
+fail2ban_findtime: "10m"
+fail2ban_maxretry: 5
+fail2ban_bantime_increment: true
+```
+
+## Variables
+
+### General Settings
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `fail2ban_role_action` | Define which parts of the role to execute. Options: `all`, `install`, `configure`, `logrotate`, `custom_jails`, `upgrade`. Note: `all` excludes `upgrade` - use explicit `upgrade` action or `--tags upgrade` | `"all"` |
+| `fail2ban_role_action` | Define which parts of the role to execute. Options: `all`, `install`, `configure`, `logrotate`, `custom_jails`, `upgrade`. Note: `all` excludes `upgrade` — use explicit `upgrade` action or `--tags upgrade` | `"all"` |
 | `fail2ban_role_mode` | Define role mode for firewall backend (nftables/iptables) | `""` |
 | `fail2ban_service_enabled` | Enable/disable Fail2ban service on boot | `true` |
 | `fail2ban_configure_logrotate` | Enable/disable logrotate configuration for Fail2ban logs | `true` |
 | `fail2ban_enable_epel` | Enable EPEL repo on EL-family systems (ignored on non-EL) | `true` |
 
-### 2. 📝 Logrotate Configuration
+### Logrotate Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `fail2ban_logrotate_options` | Dictionary of logrotate settings | See below |
-| `fail2ban_logrotate_options.archive_directory_path` | Directory where archived logs will be stored | `/var/log/fail2ban` |
+| `fail2ban_logrotate_options.archive_directory_path` | Directory where archived logs will be stored | `"/var/log/fail2ban"` |
 | `fail2ban_logrotate_options.frequency` | How often to rotate logs | `"daily"` |
 | `fail2ban_logrotate_options.count` | Number of rotated log files to keep | `30` |
 | `fail2ban_logrotate_options.missingok` | Don't error if log file is missing | `true` |
@@ -76,18 +130,18 @@ This role requires root access, so either configure it in your inventory files, 
 | `fail2ban_logrotate_options.copytruncate` | Use copy+truncate instead of move | `false` |
 | `fail2ban_logrotate_options.dateext` | Add date extension to rotated logs | `true` |
 
-### 3. 🔧 Daemon Configuration
+### Daemon Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `fail2ban_socket` | Socket file for daemon communication | `/var/run/fail2ban/fail2ban.sock` |
-| `fail2ban_pidfile` | PID file for the daemon | `/var/run/fail2ban/fail2ban.pid` |
+| `fail2ban_socket` | Socket file for daemon communication | `"/var/run/fail2ban/fail2ban.sock"` |
+| `fail2ban_pidfile` | PID file for the daemon | `"/var/run/fail2ban/fail2ban.pid"` |
 | `fail2ban_loglevel` | Log level (CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG) | `"INFO"` |
-| `fail2ban_logtarget` | Log target (file, SYSTEMD-JOURNAL, SYSLOG, STDERR, STDOUT) | `/var/log/fail2ban.log` |
-| `fail2ban_syslog_target` | Syslog target for fail2ban | `/var/log/fail2ban.log` |
+| `fail2ban_logtarget` | Log target (file, SYSTEMD-JOURNAL, SYSLOG, STDERR, STDOUT) | `"/var/log/fail2ban.log"` |
+| `fail2ban_syslog_target` | Syslog target for fail2ban | `"/var/log/fail2ban.log"` |
 | `fail2ban_syslog_facility` | Syslog facility number | `1` |
 
-### 4. 🏢 Jail Configuration
+### Jail Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -95,7 +149,7 @@ This role requires root access, so either configure it in your inventory files, 
 | `fail2ban_ignoreself` | Whether to ignore the local IP addresses (boolean) | `true` |
 | `fail2ban_ignoreip` | List of IPs or CIDR ranges to never ban | `["127.0.0.1/8", "::1"]` |
 
-### 5. 🚫 Ban Settings
+### Ban Settings
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -108,7 +162,7 @@ This role requires root access, so either configure it in your inventory files, 
 | `fail2ban_bantime_factor` | Multiplier for progressive ban calculation | `2` |
 | `fail2ban_dbpurgeage` | Time after which to purge database entries | `"30d"` |
 
-### 6. 📧 Email Notification Settings
+### Email Notification Settings
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -117,11 +171,11 @@ This role requires root access, so either configure it in your inventory files, 
 | `fail2ban_sender` | Sender email for notifications | `"root@{{ ansible_facts['fqdn'] }}"` |
 | `fail2ban_mta` | Mail transport agent (sendmail, mail) | `"sendmail"` |
 
-### 7. 🛠️ Custom Jail Configuration
+### Custom Jail Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `fail2ban_custom_jail_files` | List of custom jail configurations | `[]` |
+| `fail2ban_custom_jail_files` | List of custom jail configurations (each item requires `name` and `content` keys) | `[]` |
 | `fail2ban_custom_jails_path` | Path to custom jail files | `"files/jail.d"` |
 | `fail2ban_custom_actions_path` | Path to custom action files | `"files/action.d"` |
 | `fail2ban_custom_filters_path` | Path to custom filter files | `"files/filter.d"` |
@@ -129,7 +183,7 @@ This role requires root access, so either configure it in your inventory files, 
 **Custom Jail Example:**
 ```yaml
 fail2ban_custom_jail_files:
-  - name: sshd-custom  # This will create /etc/fail2ban/jail.d/sshd-custom.conf
+  - name: sshd-custom
     content: |
       [sshd-custom]
       enabled = true
@@ -148,7 +202,7 @@ fail2ban_custom_jail_files:
       maxretry = 2
 ```
 
-### 8. 📁 Paths and Service/Package
+### Internal Variables (Paths and Service/Package)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -159,66 +213,92 @@ fail2ban_custom_jail_files:
 | `fail2ban_logrotate_config_path` | Path to logrotate configuration file | `"/etc/logrotate.d/fail2ban"` |
 | `fail2ban_default_log_path` | Default log file path used by templates | `"/var/log/fail2ban.log"` |
 
-Note: These are internal role variables suitable for advanced customization; most users can keep the defaults.
+Note: These are internal role variables defined in `vars/main.yml`. Most users can keep the defaults.
 
-## 🔍 Included Custom Filters
+## Role Properties
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| **Idempotent** | Yes | Running the role multiple times with the same parameters produces the same result. |
+| **Atomic** | No | The role can be partially applied. A failure mid-execution may leave the system in an intermediate state. |
+| **Check Mode** | Supported | Most tasks work in check mode. Mutating commands are skipped. |
+| **Diff Mode** | Supported | Template tasks support diff mode for change preview. |
+
+## Role Output
+
+This role does not set any public output facts. All internal facts use the `__fail2ban_` double-underscore prefix and are not part of the public interface.
+
+To inspect diagnostic data at runtime, run the playbook with `-v` or `-vv` verbosity flags — the role provides detailed debug output at `verbosity: 1`.
+
+## Included Custom Filters
 
 The role includes the following custom filters that can be used in your jail configurations:
 
-### 🔒 OpenVPN
+### OpenVPN
 - **Filter**: `files/filter.d/openvpn.conf`
 - **Description**: Detects authentication failures in OpenVPN logs
 - **Usage**: Add a custom jail for OpenVPN and use `filter = openvpn`
 
-### 🌐 FreeIPA GUI
+### FreeIPA GUI
 - **Filter**: `files/filter.d/freeipa-gui.conf`
 - **Description**: Detects unauthorized access attempts to the FreeIPA web interface
 - **Usage**: Add a custom jail for FreeIPA GUI and use `filter = freeipa-gui`
 
-## 📖 Example Playbooks
+## Tags
 
-### 🔧 Basic Configuration
-```yaml
----
-- name: "🛡️ Configure Fail2ban Protection"
-  hosts: servers
-  become: true
-  vars:
-    fail2ban_ignoreip:
-      - 127.0.0.1/8
-      - ::1
-      - 192.168.1.0/24
-    fail2ban_bantime: "1h"
-    fail2ban_findtime: "30m"
-    fail2ban_maxretry: 3
-  roles:
-    - role: grzegorzfranus.fail2ban
+| Tag | Description |
+|-----|-------------|
+| `always` | Tasks that always run (variable loading and validation) |
+| `setup` | Setup and configuration tasks |
+| `init` | Initial environment setup and variable loading |
+| `validate` | Variable validation and system checks |
+| `install` | Package installation tasks |
+| `configure` | Service and role configuration tasks |
+| `logrotate` | Logrotate-specific configuration tasks |
+| `never` | Never run unless explicitly called (used by upgrade task) |
+| `upgrade` | Upgrade Fail2ban packages (explicit action required) |
+
+> **Important:** The `upgrade` tag has `never` applied, meaning it will not run during normal execution. You must explicitly request it using `--tags upgrade` or set `fail2ban_role_action: "upgrade"`.
+
+**Example with tags:**
+```bash
+# Install only
+ansible-playbook playbook.yml --tags "install"
+
+# Configure without installation
+ansible-playbook playbook.yml --tags "configure"
+
+# Upgrade Fail2ban to latest version (explicit action required)
+ansible-playbook playbook.yml --tags "upgrade"
+
+# Or use the role action variable
+ansible-playbook playbook.yml -e "fail2ban_role_action=upgrade"
 ```
 
-### 🛠️ Advanced Configuration with Custom Jails
+## Example Playbook
+
 ```yaml
 ---
-- name: "🛡️ Configure Advanced Fail2ban Protection"
+- name: Configure Fail2ban Protection
   hosts: servers
-  become: true
   vars:
     # Enhanced ban settings
     fail2ban_bantime: "2h"
     fail2ban_findtime: "15m"
     fail2ban_maxretry: 3
     fail2ban_bantime_increment: true
-    
+
     # Email notifications
     fail2ban_email_notification_enabled: true
     fail2ban_destemail: "admin@example.com"
-    
+
     # Custom ignore list
     fail2ban_ignoreip:
       - 127.0.0.1/8
       - ::1
       - 192.168.1.0/24
       - 10.0.0.0/8
-    
+
     # Custom jails
     fail2ban_custom_jail_files:
       - name: sshd-strict
@@ -242,95 +322,65 @@ The role includes the following custom filters that can be used in your jail con
           bantime = 1800
   roles:
     - role: grzegorzfranus.fail2ban
-```
 
-### 🔥 NFTables Integration
-```yaml
----
-- name: "🛡️ Configure Fail2ban with NFTables"
+# NFTables Integration
+- name: Configure Fail2ban with NFTables
   hosts: firewalls
-  become: true
   vars:
     fail2ban_role_mode: "nftables"
     fail2ban_service_enabled: true
     fail2ban_configure_logrotate: true
   roles:
     - role: grzegorzfranus.fail2ban
+```
 
-## 🔎 Validation Behavior
+## Validation Behavior
 
 - After deploying templates, the role validates configuration with `fail2ban-client -t` and fails early if the syntax is invalid.
 - The Fail2ban service is restarted only when enabled and after a successful configuration test.
-```
 
-## 🏷️ Tags
+## Security considerations
 
-Available tags for selective execution:
+- Each task explicitly defines `become: true` where privilege escalation is needed. There is no global `become: true`.
+- Configurable IP whitelisting via `fail2ban_ignoreip` prevents accidental self-lockout.
+- Progressive ban times via `fail2ban_bantime_increment` handle repeat offenders.
 
-| Tag | Description | Usage |
-|-----|-------------|-------|
-| `always` | Always run tasks | Core functionality |
-| `setup` | Load variables and setup | Variable loading |
-| `init` | Initialization steps | Early initialization |
-| `validate` | Run assertion tasks | Variable validation |
-| `install` | Install Fail2ban packages | Package installation |
-| `configure` | Configure Fail2ban service | Service configuration |
-| `logrotate` | Configure logrotate | Log rotation setup |
-| `never` | Never run unless explicitly called | Used by upgrade task |
-| `upgrade` | Upgrade Fail2ban packages | Explicit package upgrades |
-
-> **⚠️ Important:** The `upgrade` tag has `never` applied, meaning it will not run during normal execution. You must explicitly request it using `--tags upgrade` or set `fail2ban_role_action: "upgrade"`.
-
-**Example with tags:**
-```bash
-# Install only
-ansible-playbook playbook.yml --tags "install"
-
-# Configure without installation
-ansible-playbook playbook.yml --tags "configure"
-
-# Upgrade Fail2ban to latest version (explicit action required)
-ansible-playbook playbook.yml --tags "upgrade"
-
-# Or use the role action variable
-ansible-playbook playbook.yml -e "fail2ban_role_action=upgrade"
-```
-
-## 📁 File Structure
+## File Structure
 
 ```
 ansible-role-fail2ban/
-├── .github/                  # 🔄 GitHub Actions workflows
+├── .github/                  # GitHub Actions workflows
 │   └── workflows/           # CI/CD automation
-├── CHANGELOG.md              # 📝 Version history and changes
-├── LICENSE                   # ⚖️ Apache-2.0 license
-├── README.md                # 📖 This documentation file
+├── CHANGELOG.md              # Version history and changes
+├── LICENSE                   # Apache-2.0 license
+├── README.md                # This documentation file
 ├── defaults/
-│   └── main.yml             # ⚙️ Default configuration variables
-├── files/                   # 📁 Static files for custom filters
+│   └── main.yml             # Default configuration variables
+├── files/                   # Static files for custom filters
 │   ├── action.d/           # Custom action files
 │   └── filter.d/           # Custom filter files
-│       ├── freeipa-gui.conf # 🌐 FreeIPA GUI filter
-│       └── openvpn.conf    # 🔒 OpenVPN filter
+│       ├── freeipa-gui.conf # FreeIPA GUI filter
+│       └── openvpn.conf    # OpenVPN filter
 ├── handlers/
-│   └── main.yml             # 🔄 Service restart and reload handlers
+│   └── main.yml             # Service restart and reload handlers
 ├── meta/
-│   └── main.yml             # 📋 Role metadata and Galaxy information
-├── molecule/                # 🧪 Molecule testing framework
+│   ├── main.yml             # Role metadata and Galaxy information
+│   └── argument_specs.yml   # Ansible-native argument validation (CoP §3.1.20)
+├── molecule/                # Molecule testing framework
 │   └── default/            # Default test scenario
 │       ├── molecule.yml    # Test configuration
 │       ├── converge.yml    # Role execution playbook
 │       ├── prepare.yml     # Test preparation tasks
 │       └── verify.yml      # Verification tests
 ├── tasks/
-│   ├── main.yml            # 🎯 Main task orchestration
-│   ├── assert.yml          # ✅ Variable validation and system checks
-│   ├── install.yml         # 📦 Package installation
-│   ├── configure.yml       # 🔧 Service configuration
-│   ├── custom_jails.yml    # 🛠️ Custom jail management
-│   ├── logrotate.yml       # 📝 Log rotation configuration
-│   └── upgrade.yml         # 🔄 Package upgrades
-├── templates/              # 📄 Configuration templates
+│   ├── main.yml            # Main task orchestration
+│   ├── assert.yml          # Runtime variable validation
+│   ├── install.yml         # Package installation
+│   ├── configure.yml       # Service configuration
+│   ├── custom_jails.yml    # Custom jail management
+│   ├── logrotate.yml       # Log rotation configuration
+│   └── upgrade.yml         # Package upgrades
+├── templates/              # Configuration templates
 │   ├── fail2ban/          # Core Fail2ban configuration
 │   │   ├── fail2ban.local.j2 # Main daemon configuration
 │   │   └── jail.local.j2   # Jail configurations
@@ -339,14 +389,13 @@ ansible-role-fail2ban/
 │   │   └── redhat/        # RedHat-specific templates
 │   └── systemd/           # Systemd service overrides
 └── vars/
-    └── main.yml            # 🔧 Internal role variables
+    └── main.yml            # Internal role variables
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
-### Common Issues
+### Service Issues
 
-#### 🚨 Service Won't Start
 ```bash
 # Check service status
 sudo systemctl status fail2ban
@@ -358,7 +407,8 @@ sudo fail2ban-client -t
 sudo journalctl -u fail2ban -n 50
 ```
 
-#### 🔍 Debugging Jail Issues
+### Jail Issues
+
 ```bash
 # Test jail configuration
 sudo fail2ban-client status
@@ -370,16 +420,18 @@ sudo fail2ban-client status sshd
 sudo fail2ban-client get sshd banip
 ```
 
-#### 📧 Email Notification Issues
+### Email Notification Issues
+
 ```bash
 # Test email configuration
 echo "Test" | mail -s "Test Subject" admin@example.com
 
 # Check MTA logs
-sudo journalctl -u postfix -n 20  # For postfix
+sudo journalctl -u postfix -n 20
 ```
 
-### 🧪 Testing
+### Testing
+
 ```bash
 # Run molecule tests
 molecule test
@@ -391,14 +443,7 @@ ansible-lint
 yamllint .
 ```
 
-### 🔄 Development Workflow
-1. **🍴 Fork** the repository and create your branch from `main`
-2. **✅ Make** your changes with clear, descriptive commit messages
-3. **🧪 Ensure** your code passes all Molecule and lint tests
-4. **📝 Submit** a pull request describing your changes and the motivation
-5. **💬 For major changes**, please open an issue first to discuss what you would like to change
-
-## 🤝 Contributing
+## Contributing
 
 Contributions, bug reports, and feature requests are welcome!
 
@@ -410,13 +455,10 @@ Contributions, bug reports, and feature requests are welcome!
 
 If you have questions or suggestions, feel free to open an issue or contact the author via GitHub.
 
-## 📝 License
+## License
 
 This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
 
-## 👥 Author Information
+## Author Information
 
 This role was created by [Grzegorz Franus](https://github.com/grzegorzfranus).
-
----
-**🛡️ Keep your systems secure with Fail2ban! 🚀**

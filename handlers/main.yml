@@ -1,39 +1,28 @@
 ---
-# =============================================================================
-# Ansible Role: Fail2ban - Handlers
-# =============================================================================
-# This file defines handlers that can be triggered by tasks to perform
-# service management operations. Handlers run only once at the end of plays,
-# even if notified multiple times, following Ansible best practices.
-#
-# Each handler manages specific service operations with enhanced logging
-# and error handling capabilities.
-# =============================================================================
+# Fail2ban Handlers — Service management operations triggered by tasks.
 
-# -----------------------------------------------------------------------------
-# Service Handlers
-# -----------------------------------------------------------------------------
-- name: "Fail2ban | handlers | Restart fail2ban service"
+- name: Fail2ban | handlers | Restart fail2ban service
   become: true
   ansible.builtin.service:
     name: "{{ fail2ban_service_name }}"
     state: restarted
-  register: _fail2ban_service_restart_result
-  failed_when: _fail2ban_service_restart_result.failed
+  register: __fail2ban_service_restart_result
+  failed_when: __fail2ban_service_restart_result.failed
   when: >
     fail2ban_service_enabled | bool
 
-- name: "Fail2ban | handlers | Reload systemd daemon"
+- name: Fail2ban | handlers | Reload systemd daemon
   become: true
   ansible.builtin.systemd_service:
     daemon_reload: true
 
-- name: "Fail2ban | handlers | Report service restart status"
+- name: Fail2ban | handlers | Report service restart status
   ansible.builtin.debug:
     msg:
-      - "🔄 Fail2ban Service Restart Handler Executed:"
+      - "Fail2ban Service Restart Handler Executed:"
       - "   Service Name: {{ fail2ban_service_name }}"
-      - "   Restart Status: {{ 'Success' if not _fail2ban_service_restart_result.failed else 'Failed' }}"
-      - "   Service State: {{ _fail2ban_service_restart_result.state | default('unknown') }}"
+      - "   Restart Status: {{ 'Success' if not __fail2ban_service_restart_result.failed else 'Failed' }}"
+      - "   Service State: {{ __fail2ban_service_restart_result.state | default('unknown') }}"
+    verbosity: 1
   when: >
-    _fail2ban_service_restart_result is defined
+    __fail2ban_service_restart_result is defined
