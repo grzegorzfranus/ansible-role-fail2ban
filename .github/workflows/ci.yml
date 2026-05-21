@@ -1,0 +1,100 @@
+---
+name: "CI"
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # ================================================================
+  # 1. BRANCH NAME VALIDATION (Pre-hook)
+  # ================================================================
+  branch-name-lint:
+    name: "Branch Name Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Validate branch name"
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            {
+              echo "### ✅ Branch Name Validation Skipped"
+              echo "Branch validation is only enforced on Pull Requests."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          REGEX="^(feature|bugfix|hotfix|release|docs|refactor|test|chore|ci)/.+|^release-please--.*"
+
+          if [[ ! "$BRANCH_NAME" =~ $REGEX ]]; then
+            echo "::error::Invalid branch name: '$BRANCH_NAME'"
+            {
+              echo "### ❌ Branch Name Validation Failed"
+              echo ""
+              echo "The source branch name **'$BRANCH_NAME'** does not conform to the repository naming conventions."
+              echo ""
+              echo "#### 🧭 Allowed Prefixes"
+              echo "- \`feature/\` — New features or enhancements"
+              echo "- \`bugfix/\` — Bug fixes"
+              echo "- \`hotfix/\` — Critical production fixes"
+              echo "- \`release/\` — Release branches"
+              echo "- \`docs/\` — Documentation updates"
+              echo "- \`refactor/\` — Code refactoring"
+              echo "- \`test/\` — Test additions or corrections"
+              echo "- \`chore/\` — Maintenance tasks"
+              echo "- \`ci/\` — CI/CD changes"
+              echo ""
+              echo "#### 💡 How to fix"
+              echo "Rename your branch locally using:"
+              echo "\`\`\`bash"
+              echo "git branch -m <new-name>"
+              echo "git push origin -u <new-name>"
+              echo "\`\`\`"
+              echo "Then close this PR and open a new one."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          {
+            echo "### ✅ Branch Name Validation Passed"
+            echo "Branch name **'$BRANCH_NAME'** conforms to conventions."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ================================================================
+  # 2. CI PIPELINE (Reusable Workflow)
+  # ================================================================
+  ci:
+    needs: [branch-name-lint]
+    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-ci.yml@main
+    with:
+      molecule-distros: '["ubuntu2404", "ubuntu2204", "debian12", "debian11", "rockylinux9"]'
+
+  # ================================================================
+  # 3. MERGE CHECK — Caller-level gate for branch protection
+  # ================================================================
+  merge-check:
+    name: "Merge Check"
+    needs: [branch-name-lint, ci]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Evaluate results"
+        run: |
+          echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
+          echo "CI: ${{ needs.ci.result }}"
+
+          if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
+            echo "::error::Branch Name Lint failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.ci.result }}" != "success" ]]; then
+            echo "::error::CI pipeline failed"
+            exit 1
+          fi
+
+          echo "All checks passed"
