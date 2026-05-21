@@ -1,0 +1,89 @@
+---
+name: "Release"
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  # ================================================================
+  # 1. RELEASE PLEASE
+  # ================================================================
+  release-please:
+    name: "Release Please"
+    runs-on: ubuntu-latest
+    outputs:
+      prs_created: ${{ steps.release.outputs.prs_created }}
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - name: "Run Release Please"
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # ================================================================
+  # 2. VALIDATE RELEASE PR
+  # ================================================================
+  validate-release-pr:
+    name: "Validate Release PR"
+    needs: [release-please]
+    if: needs.release-please.outputs.prs_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Get Release PR details"
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+          PR_NUMBER=$(gh pr list \
+            --repo "$REPO" \
+            --head "release-please--branches--main" \
+            --json number \
+            --jq '.[0].number')
+          PR_SHA=$(gh pr view "$PR_NUMBER" \
+            --repo "$REPO" \
+            --json headRefOid \
+            --jq '.headRefOid')
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: "Checkout Release PR branch"
+        uses: actions/checkout@v6
+        with:
+          ref: release-please--branches--main
+
+      - name: "Install yamllint"
+        run: pip install yamllint
+
+      - name: "Lint YAML files"
+        run: yamllint .
+
+      - name: "Set Merge Check status on PR"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          gh api "repos/${{ github.repository }}/statuses/$PR_SHA" \
+            -f state=success \
+            -f context="Merge Check" \
+            -f description="All validations passed (Release PR)"
+          echo "Set 'Merge Check' status on commit $PR_SHA"
+
+  # ================================================================
+  # 3. PUBLISH TO ANSIBLE GALAXY
+  # ================================================================
+  publish-to-galaxy:
+    name: "Publish to Galaxy"
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-publish-galaxy.yml@main
+    secrets:
+      galaxy-api-key: ${{ secrets.GALAXY_API_KEY }}
