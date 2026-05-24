@@ -13,10 +13,14 @@ permissions:
 jobs:
   # ================================================================
   # 1. RELEASE PLEASE
+  # ----------------------------------------------------------------
+  # Runs googleapis/release-please-action to check for Conventional
+  # Commits and create a Release PR.
   # ================================================================
   release-please:
     name: "Release Please"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       prs_created: ${{ steps.release.outputs.prs_created }}
       release_created: ${{ steps.release.outputs.release_created }}
@@ -30,12 +34,16 @@ jobs:
 
   # ================================================================
   # 2. VALIDATE RELEASE PR
+  # ----------------------------------------------------------------
+  # Validates the Release PR metadata (such as meta/main.yml)
+  # before merging.
   # ================================================================
   validate-release-pr:
     name: "Validate Release PR"
     needs: [release-please]
     if: needs.release-please.outputs.prs_created == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: "Get Release PR details"
         id: pr
@@ -66,6 +74,33 @@ jobs:
       - name: "Lint YAML files"
         run: yamllint .
 
+      - name: "Validate Galaxy metadata (meta/main.yml)"
+        run: |
+          if [ ! -f meta/main.yml ]; then
+            echo "::error::meta/main.yml is missing"
+            exit 1
+          fi
+          python3 -c "
+          import yaml, sys
+          with open('meta/main.yml') as f:
+              data = yaml.safe_load(f)
+          gi = data.get('galaxy_info', {})
+          errors = []
+          for field in ['author', 'description', 'license', 'min_ansible_version']:
+              if not gi.get(field):
+                  errors.append(f'Missing required field: galaxy_info.{field}')
+          desc = gi.get('description', '')
+          if desc and len(desc) > 255:
+              errors.append(f'Description too long: {len(desc)}/255 chars')
+          if not gi.get('platforms'):
+              errors.append('No platforms defined in galaxy_info')
+          if errors:
+              for e in errors:
+                  print(f'::error::{e}')
+              sys.exit(1)
+          print('Galaxy metadata validation passed')
+          "
+
       - name: "Set Merge Check status on PR"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -79,6 +114,8 @@ jobs:
 
   # ================================================================
   # 3. PUBLISH TO ANSIBLE GALAXY
+  # ----------------------------------------------------------------
+  # Triggers when a new release is created (when Release PR is merged).
   # ================================================================
   publish-to-galaxy:
     name: "Publish to Galaxy"

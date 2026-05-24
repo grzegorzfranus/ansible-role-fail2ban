@@ -4,12 +4,19 @@ name: "CI"
 on:
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 permissions:
   contents: read
 
 jobs:
   # ================================================================
   # 1. BRANCH NAME VALIDATION (Pre-hook)
+  # ----------------------------------------------------------------
+  # Enforces Git branch naming conventions. Rejects PR branches
+  # that do not use one of the standard enterprise prefixes.
   # ================================================================
   branch-name-lint:
     name: "Branch Name Lint"
@@ -65,30 +72,105 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ================================================================
+  # 1b. PR TITLE VALIDATION (Pre-hook)
+  # ----------------------------------------------------------------
+  # Enforces Conventional Commits naming conventions on PR titles.
+  # Runs first to fail fast and save runner execution minutes.
+  # ================================================================
+  pr-title-lint:
+    name: "PR Title Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Validate PR title"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            {
+              echo "### ✅ PR Title Validation Skipped"
+              echo "PR title validation is only enforced on Pull Requests."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          REGEX="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+$"
+
+          if [[ ! "$PR_TITLE" =~ $REGEX ]]; then
+            echo "::error::Invalid PR title: '$PR_TITLE'"
+            {
+              echo "### ❌ PR Title Validation Failed"
+              echo ""
+              echo "The Pull Request title **'$PR_TITLE'** does not conform to Conventional Commits."
+              echo ""
+              echo "#### 🧭 Allowed Format"
+              echo "\`<type>(<scope>)!: <description>\` (scope and ! are optional)"
+              echo ""
+              echo "#### 💡 Allowed Types"
+              echo "- \`feat\` — New features"
+              echo "- \`fix\` — Bug fixes"
+              echo "- \`docs\` — Documentation updates"
+              echo "- \`style\` — Code style changes (whitespace, formatting)"
+              echo "- \`refactor\` — Code refactoring without behavior changes"
+              echo "- \`perf\` — Performance improvements"
+              echo "- \`test\` — Test additions or corrections"
+              echo "- \`build\` — Build system or dependency updates"
+              echo "- \`ci\` — CI/CD configurations"
+              echo "- \`chore\` — General maintenance tasks"
+              echo "- \`revert\` — Reverting previous commits"
+              echo ""
+              echo "#### 💡 How to fix"
+              echo "Edit the title of this Pull Request on GitHub to match the specification (e.g., \`feat(ci): add pr title validation\`)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          {
+            echo "### ✅ PR Title Validation Passed"
+            echo "PR title **'$PR_TITLE'** conforms to Conventional Commits."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ================================================================
   # 2. CI PIPELINE (Reusable Workflow)
+  # ----------------------------------------------------------------
+  # Calls the centralized Ansible CI workflow which includes:
+  # YAML lint, Ansible lint, TruffleHog security scan, Molecule
+  # tests, and its own internal merge check gate.
   # ================================================================
   ci:
-    needs: [branch-name-lint]
+    needs: [branch-name-lint, pr-title-lint]
     uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-ci.yml@main
     with:
       molecule-distros: '["ubuntu2404", "ubuntu2204", "debian12", "debian11", "rockylinux9"]'
 
   # ================================================================
   # 3. MERGE CHECK — Caller-level gate for branch protection
+  # ----------------------------------------------------------------
+  # Aggregates branch name lint + reusable CI results into a
+  # single authoritative status check. Branch protection should
+  # point to THIS merge-check, not the reusable workflow's internal
+  # one. This implements the two-tier gate pattern.
   # ================================================================
   merge-check:
     name: "Merge Check"
-    needs: [branch-name-lint, ci]
+    needs: [branch-name-lint, pr-title-lint, ci]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: "Evaluate results"
         run: |
           echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
+          echo "PR Title Lint: ${{ needs.pr-title-lint.result }}"
           echo "CI: ${{ needs.ci.result }}"
 
           if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
             echo "::error::Branch Name Lint failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.pr-title-lint.result }}" != "success" ]]; then
+            echo "::error::PR Title Lint failed"
             exit 1
           fi
 
