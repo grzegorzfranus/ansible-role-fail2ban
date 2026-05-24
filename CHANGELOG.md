@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v1.3.0...v1.4.0) (2026-05-24)
+
+
+### Features
+
+* migrate to centralized CI, Release Please, and Galaxy publish ([#3](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/3)) ([8b63bbb](https://github.com/grzegorzfranus/ansible-role-fail2ban/commit/8b63bbb9cc5339cb8a16b5baf30fadf321e73858))
+
+
+### CI/CD
+
+* align github workflows and gitignore with standard layout ([#5](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/5)) ([8cc57d9](https://github.com/grzegorzfranus/ansible-role-fail2ban/commit/8cc57d93da05b30ff1d663b6942cb96f41dce544))
+
 ## [1.3.0] - 2026-05-18
 
 ### Added
