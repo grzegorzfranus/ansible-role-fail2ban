@@ -339,13 +339,36 @@ ansible-playbook playbook.yml -e "fail2ban_role_action=upgrade"
 - After deploying templates, the role validates configuration with `fail2ban-client -t` and fails early if the syntax is invalid.
 - The Fail2ban service is restarted only when enabled and after a successful configuration test.
 
-## Security considerations
+## 🔍 Verification
+
+After deployment, verify that Fail2ban is working correctly:
+
+### Check Fail2ban Status
+
+```bash
+# Check service status
+sudo systemctl status fail2ban
+
+# Check general Fail2ban client status
+sudo fail2ban-client status
+
+# Check status of a specific jail (e.g., sshd)
+sudo fail2ban-client status sshd
+```
+
+### Test Configuration Syntax
+
+```bash
+sudo fail2ban-client -t
+```
+
+## 🛡️ Security Features
 
 - Each task explicitly defines `become: true` where privilege escalation is needed. There is no global `become: true`.
 - Configurable IP whitelisting via `fail2ban_ignoreip` prevents accidental self-lockout.
 - Progressive ban times via `fail2ban_bantime_increment` handle repeat offenders.
 
-## File Structure
+## 📁 File Structure
 
 ```
 ansible-role-fail2ban/
@@ -396,7 +419,7 @@ ansible-role-fail2ban/
     └── main.yml            # Internal role variables
 ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Service Issues
 
@@ -493,10 +516,10 @@ Contributions, bug reports, and feature requests are welcome!
 
 If you have questions or suggestions, feel free to open an issue or contact the author via GitHub.
 
-## License
+## 📝 License
 
 This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
 
-## Author Information
+## 👥 Author Information
 
 This role was created by [Grzegorz Franus](https://github.com/grzegorzfranus).
