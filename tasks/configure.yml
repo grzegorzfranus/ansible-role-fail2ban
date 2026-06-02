@@ -1,5 +1,9 @@
 ---
-# Fail2ban Configure — Service configuration, template deployment, and systemd management.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Configuration
+# =============================================================================
+# Service configuration, template deployment, and systemd management.
+# =============================================================================
 
 # Service State Management
 - name: Fail2ban | configure | Configure service enablement

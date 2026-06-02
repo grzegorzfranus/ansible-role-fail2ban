@@ -1,5 +1,9 @@
 ---
-# Fail2ban Install — Package installation with EPEL support and verification.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Installation
+# =============================================================================
+# Package installation with EPEL support and verification.
+# =============================================================================
 
 # EPEL Installation (RedHat/Oracle/Rocky Linux)
 - name: Fail2ban | install | Install EPEL package for Oracle Linux distribution

@@ -1,5 +1,9 @@
 ---
-# Fail2ban Handlers — Service management operations triggered by tasks.
+# =============================================================================
+# Ansible Role: Fail2ban - Handlers
+# =============================================================================
+# Service management operations triggered by tasks.
+# =============================================================================
 
 - name: Fail2ban | handlers | Restart fail2ban service
   become: true

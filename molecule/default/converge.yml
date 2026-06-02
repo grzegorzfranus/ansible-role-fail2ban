@@ -52,8 +52,7 @@
           bantime = 300
 
   roles:
-    - role: ../../..
-
+    - role: ../../.. # noqa role-name[path]
   post_tasks:
     - name: "📊 Converge | Display role execution summary"
       ansible.builtin.debug:

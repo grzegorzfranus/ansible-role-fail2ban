@@ -2,7 +2,7 @@
 # =============================================================================
 # Ansible Role: Fail2ban - Common Variables
 # =============================================================================
-# This file defines common variables shared across all distributions.
+# This file defines common internal variables shared across all distributions.
 # These values are distribution-agnostic and apply to all supported systems.
 #
 # Sections:

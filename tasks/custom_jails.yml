@@ -1,5 +1,9 @@
 ---
-# Fail2ban Custom Jails — Create and manage custom jail configuration files.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Custom Jails
+# =============================================================================
+# Create and manage custom jail configuration files.
+# =============================================================================
 
 # Jail Directory Setup
 - name: Fail2ban | jails | Ensure jail.d directory exists
@@ -41,7 +45,9 @@
 
 - name: Fail2ban | jails | Create list of expected jail files
   ansible.builtin.set_fact:
-    __fail2ban_expected_jail_files: "{{ fail2ban_custom_jail_files | map(attribute='name') | map('regex_replace', '^(.*)$', fail2ban_dir_config_path + '/jail.d/\\1.conf') | list }}"
+    __fail2ban_expected_jail_files: "{{ fail2ban_custom_jail_files | map(attribute='name') | map('regex_replace', '^(.*)$', __jdir + '/\\1.conf') | list }}"
+  vars:
+    __jdir: "{{ fail2ban_dir_config_path }}/jail.d"
   when:
     - fail2ban_custom_jail_files is defined
     - fail2ban_custom_jail_files | length > 0
@@ -66,6 +72,11 @@
       - "Fail2ban Custom Jails Configuration Completed Successfully:"
       - "   Custom Jails Count: {{ fail2ban_custom_jail_files | length if fail2ban_custom_jail_files is defined else 0 }}"
       - "   Jail Directory: {{ fail2ban_dir_config_path }}/jail.d"
-      - "   Jail Files: {{ fail2ban_custom_jail_files | map(attribute='name') | list if fail2ban_custom_jail_files is defined and fail2ban_custom_jail_files | length > 0 else 'None configured' }}"
-      - "   Cleanup Performed: {{ 'Yes' if (__fail2ban_existing_jail_files is defined and __fail2ban_existing_jail_files.files | length > 0) else 'No orphaned files found' }}"
+      - >-
+        Jail Files: {{ fail2ban_custom_jail_files | map(attribute='name') | list
+        if fail2ban_custom_jail_files is defined and fail2ban_custom_jail_files | length > 0
+        else 'None configured' }}
+      - >-
+        Cleanup Performed: {{ 'Yes' if (__fail2ban_existing_jail_files is defined and
+        __fail2ban_existing_jail_files.files | length > 0) else 'No orphaned files found' }}
     verbosity: 1
