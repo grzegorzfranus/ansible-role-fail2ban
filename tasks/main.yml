@@ -1,6 +1,10 @@
 ---
-# Fail2ban Main — Orchestrates role execution in order.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Main Orchestration
+# =============================================================================
+# Orchestrates role execution in order.
 # Flow: vars → assert → install → configure → custom_jails → logrotate → upgrade
+# =============================================================================
 
 - name: Fail2ban | include_vars | Gather OS specific variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"

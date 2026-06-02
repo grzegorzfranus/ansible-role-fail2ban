@@ -1,5 +1,9 @@
 ---
-# Fail2ban Logrotate — Configure log rotation for Fail2ban log files.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Logrotate
+# =============================================================================
+# Configure log rotation for Fail2ban log files.
+# =============================================================================
 
 # Archive Directory Setup
 - name: Fail2ban | logrotate | Check if archive log directory exists

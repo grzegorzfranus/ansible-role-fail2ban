@@ -1,5 +1,9 @@
 ---
-# Fail2ban Upgrade — Package upgrade with pre/post verification.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Upgrade
+# =============================================================================
+# Package upgrade with pre/post verification.
+# =============================================================================
 
 # Pre-Upgrade Validation
 - name: Fail2ban | upgrade | Check current Fail2ban version before upgrade
@@ -51,6 +55,8 @@
       - "   Previous Version: {{ __fail2ban_version_before.stdout if __fail2ban_version_before.rc == 0 else 'Unknown' }}"
       - "   Current Version: {{ __fail2ban_version_after.stdout }}"
       - "   Package Changed: {{ 'Yes' if __fail2ban_upgrade_result.changed else 'No (already latest)' }}"
-      - "   Service Status: {{ __fail2ban_service_status.status.ActiveState | default('unknown') if __fail2ban_service_status.status is defined else 'unknown' }}"
+      - >-
+        Service Status: {{ __fail2ban_service_status.status.ActiveState | default('unknown')
+        if __fail2ban_service_status.status is defined else 'unknown' }}
       - "   Package Manager: {{ ansible_facts['pkg_mgr'] }}"
     verbosity: 1

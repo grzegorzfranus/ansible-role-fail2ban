@@ -1,7 +1,50 @@
 ---
-# Fail2ban Assert — Runtime validation of variable values.
+# =============================================================================
+# Ansible Role: Fail2ban - Tasks: Assertions
+# =============================================================================
+# Runtime validation of variable values.
 # Basic type/choice validation is handled by meta/argument_specs.yml.
 # This file performs runtime-only checks (regex patterns, content validation, cross-field logic).
+# =============================================================================
+
+# General Settings Validation
+- name: Fail2ban | assert | Validate role action and configuration toggles
+  ansible.builtin.assert:
+    that:
+      - fail2ban_role_action is defined
+      - fail2ban_role_action is string
+      - fail2ban_role_action in ['all', 'install', 'configure', 'logrotate', 'custom_jails', 'upgrade']
+      - fail2ban_service_enabled is defined
+      - fail2ban_service_enabled is boolean
+      - fail2ban_configure_logrotate is defined
+      - fail2ban_configure_logrotate is boolean
+      - fail2ban_enable_epel is defined
+      - fail2ban_enable_epel is boolean
+    fail_msg: "Invalid fail2ban role action or boolean configuration toggle"
+    success_msg: "General role action and toggles are valid"
+
+# Daemon and Jail Settings Validation
+- name: Fail2ban | assert | Validate daemon paths, logging and jail configuration
+  ansible.builtin.assert:
+    that:
+      - fail2ban_socket is defined
+      - fail2ban_socket is match('^/.+')
+      - fail2ban_pidfile is defined
+      - fail2ban_pidfile is match('^/.+')
+      - fail2ban_loglevel is defined
+      - fail2ban_loglevel in ['CRITICAL', 'ERROR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG']
+      - fail2ban_ignoreself is defined
+      - fail2ban_ignoreself is boolean
+      - fail2ban_email_notification_enabled is defined
+      - fail2ban_email_notification_enabled is boolean
+      - fail2ban_mta is defined
+      - fail2ban_mta in ['sendmail', 'mail']
+      - fail2ban_maxretry is defined
+      - (fail2ban_maxretry | int) >= 0
+      - fail2ban_bantime_factor is defined
+      - (fail2ban_bantime_factor | int) >= 0
+    fail_msg: "Invalid daemon, logging, or jail settings in configuration"
+    success_msg: "Daemon, logging, and jail configuration values are valid"
 
 # nftables binary availability (runtime-only — cannot be checked by argument_specs)
 - name: Fail2ban | assert | Check nftables command availability

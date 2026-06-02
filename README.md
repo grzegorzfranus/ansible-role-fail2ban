@@ -6,19 +6,19 @@
 
 This Ansible role installs, configures, and manages **Fail2ban**, an intrusion prevention framework that protects systems from brute-force attacks and other malicious behavior. It works by monitoring log files for selected patterns and taking action when these patterns match malicious activity.
 
-## Features
+## ✨ Features
 
-- **Package Management**: Install and upgrade Fail2ban package with EPEL support for EL-family systems
-- **Daemon Configuration**: Full control over logging, socket, PID, and syslog settings
-- **Jail Management**: Deploy core jail configuration and custom jail files with orphan cleanup
-- **Ban Policies**: Progressive ban times, configurable thresholds, and IP whitelisting
-- **Email Notifications**: Optional email alerts on ban/unban events
-- **Custom Filters**: Included filters for OpenVPN and FreeIPA GUI
-- **Logrotate**: Automated log rotation with OS-specific templates
-- **NFTables Support**: Systemd override for nftables firewall backend
-- **Comprehensive Validation**: Argument specs and runtime assertions for all variables
+- 📦 **Package Management**: Install and upgrade Fail2ban package with EPEL support for EL-family systems
+- 🔧 **Daemon Configuration**: Full control over logging, socket, PID, and syslog settings
+- 🔒 **Jail Management**: Deploy core jail configuration and custom jail files with orphan cleanup
+- 🛡️ **Ban Policies**: Progressive ban times, configurable thresholds, and IP whitelisting
+- ✉️ **Email Notifications**: Optional email alerts on ban/unban events
+- 🔍 **Custom Filters**: Included filters for OpenVPN and FreeIPA GUI
+- 🔄 **Logrotate**: Automated log rotation with OS-specific templates
+- 🧱 **NFTables Support**: Systemd override for nftables firewall backend
+- ✅ **Comprehensive Validation**: Argument specs and runtime assertions for all variables
 
-## Requirements
+## 📋 Requirements
 
 ### Supported operating systems
 
@@ -26,12 +26,13 @@ List of officially supported operating systems for this role:
 
 | OS Family | Version | Status |
 |-----------|---------|--------|
-| Ubuntu | 24.04 (Noble) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
-| Ubuntu | 22.04 (Jammy) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
-| Debian | 12 (Bookworm) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
-| Debian | 11 (Bullseye) | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
-| Rocky Linux | 9 | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
-| EL | 9 | ![supported](https://img.shields.io/badge/supported-brightgreen.svg) |
+| Ubuntu | 24.04 (Noble) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| Ubuntu | 22.04 (Jammy) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| Debian | 12 (Bookworm) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| Debian | 11 (Bullseye) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| EL (RHEL, Rocky, Alma, Oracle) | 9 | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+
+> **Note**: EL 8 is not supported — `python3-dnf` bindings are compiled for Python 3.6, which is incompatible with ansible-core >= 2.17. Use EL 9 or newer.
 
 ### Ansible version
 
@@ -49,7 +50,7 @@ The role uses facts gathered by Ansible on the remote host. If you disable the S
 
 This role requires root access for package installation and service management. Each task explicitly defines `become: true` where privilege escalation is needed — there is no global `become: true` requirement.
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Basic Fail2ban Installation
 
@@ -85,7 +86,7 @@ This role requires root access for package installation and service management. 
 ansible-playbook -i inventory fail2ban-setup.yml
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 ### Default Configuration
 
@@ -104,7 +105,7 @@ fail2ban_maxretry: 5
 fail2ban_bantime_increment: true
 ```
 
-## Variables
+## 📊 Variables
 
 ### General Settings
 
@@ -215,7 +216,7 @@ fail2ban_custom_jail_files:
 
 Note: These are internal role variables defined in `vars/main.yml`. Most users can keep the defaults.
 
-## Role Properties
+## 📌 Role Properties
 
 | Property | Value | Description |
 |----------|-------|-------------|
@@ -224,7 +225,7 @@ Note: These are internal role variables defined in `vars/main.yml`. Most users c
 | **Check Mode** | Supported | Most tasks work in check mode. Mutating commands are skipped. |
 | **Diff Mode** | Supported | Template tasks support diff mode for change preview. |
 
-## Role Output
+## 📤 Role Output
 
 This role does not set any public output facts. All internal facts use the `__fail2ban_` double-underscore prefix and are not part of the public interface.
 
@@ -244,7 +245,7 @@ The role includes the following custom filters that can be used in your jail con
 - **Description**: Detects unauthorized access attempts to the FreeIPA web interface
 - **Usage**: Add a custom jail for FreeIPA GUI and use `filter = freeipa-gui`
 
-## Tags
+## 🏷️ Role Tags
 
 | Tag | Description |
 |-----|-------------|
@@ -275,7 +276,7 @@ ansible-playbook playbook.yml --tags "upgrade"
 ansible-playbook playbook.yml -e "fail2ban_role_action=upgrade"
 ```
 
-## Example Playbook
+## Example Playbooks
 
 ```yaml
 ---
@@ -496,7 +497,7 @@ Automated via [Release Please](https://github.com/googleapis/release-please):
 - **Dynamic Platform Matrix**: Molecule automatically spins up containers matching the requested matrix distro.
 - **Systemd Integration**: Proper container capabilities configured (`/sys/fs/cgroup`, privileged) to test Fail2ban's systemd services.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions, bug reports, and feature requests are welcome!
 
