@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v1.4.1...v1.4.2) (2026-06-02)
+
+
+### Code Refactoring
+
+* standardize comments, headers, and validations ([#8](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/8)) ([1670ab4](https://github.com/grzegorzfranus/ansible-role-fail2ban/commit/1670ab491ff6d26b9c8b947f6a24e2652d30a508))
+
 ## [1.4.1](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v1.4.0...v1.4.1) (2026-05-24)
 
 
