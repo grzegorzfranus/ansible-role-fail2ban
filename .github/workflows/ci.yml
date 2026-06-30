@@ -141,7 +141,7 @@ jobs:
     needs: [branch-name-lint, pr-title-lint]
     uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@main
     with:
-      molecule-distros: '["ubuntu2404", "ubuntu2204", "debian12", "debian11", "rockylinux9"]'
+      molecule-distros: '["ubuntu2604", "ubuntu2404", "ubuntu2204", "debian13", "debian12", "debian11", "rockylinux9"]'
 
   # ================================================================
   # 3. MERGE CHECK — Caller-level gate for branch protection

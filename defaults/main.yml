@@ -6,8 +6,10 @@
 # These values can be overridden by setting them in your playbook or inventory.
 #
 # Supported OS distributions:
+# - Ubuntu 26.04 (Resolute) and variants
 # - Ubuntu 24.04 (Noble) and variants
 # - Ubuntu 22.04 (Jammy) and variants
+# - Debian 13 (Trixie) and variants
 # - Debian 12 (Bookworm) and variants
 # - Debian 11 (Bullseye) and variants
 # - EL 9: Rocky Linux 9, RHEL 9, AlmaLinux 9, CentOS Stream 9
