@@ -1,22 +1,53 @@
-# ignore visual studio code things, and intelliJ
-.vscode
-.idea
-.cursor
+# Development environment configuration
+.vscode/
+.idea/
+.cursor/
 
-# ignore Python Environments
+# Python virtual environment directories
 .env
-.venv
+.venv/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-# ignore cache
-.cache
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# ignore Mac
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Cache files and directories
+.cache/
+
+# Ansible local artifacts and cache
+.ansible/
+retry_files_enabled
+*.retry
+
+# Log files
+*.log
+
+# Operating system generated files (macOS)
 .DS_Store
 
-# Asible
-.ansible/
+# Operating system generated files (Windows)
+Thumbs.db
+
+# Local environment variables and secrets
+.env.local
+.env.*
+!.env.example

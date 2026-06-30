@@ -1,0 +1,45 @@
+---
+name: Feature request
+description: Suggest an enhancement or new feature
+title: "feat: [Brief Description of Feature]"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 💡 Structured Feature Request
+        Have an idea for a new feature? Tell us about it below!
+  - type: textarea
+    id: what
+    attributes:
+      label: "1. What"
+      description: Describe the requested feature and the proposed solution.
+      placeholder: "Describe the feature..."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "2. Why"
+      description: Motivation and context (e.g. why is this needed, what problem does it solve).
+      placeholder: "Motivation and context..."
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: "3. Value"
+      description: Business or technical value (e.g., improves developer efficiency, improves security).
+      placeholder: "Technical or business value..."
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: "4. Acceptance Criteria"
+      description: Criteria that must be met to consider this issue complete.
+      value: |
+        - [ ] Feature is implemented and verified.
+        - [ ] Documentation is updated in README.md.
+    validations:
+      required: true
