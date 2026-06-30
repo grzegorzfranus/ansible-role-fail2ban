@@ -1,0 +1,45 @@
+---
+name: Bug report
+description: File a structured bug report
+title: "fix: [Brief Description of Bug]"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🧪 Structured Bug Report
+        Thank you for reporting a bug! Please fill out the form sections below.
+  - type: textarea
+    id: what
+    attributes:
+      label: "1. What"
+      description: Describe the bug and what went wrong. Include step-by-step reproduction steps if possible.
+      placeholder: "Describe the bug..."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "2. Why"
+      description: Motivation and context (e.g. impact on users, environments affected).
+      placeholder: "Motivation and context..."
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: "3. Value"
+      description: Technical value of fixing this issue (e.g., error prevention, stabilizing builds).
+      placeholder: "Technical value of fixing this..."
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: "4. Acceptance Criteria"
+      description: Criteria that must be met to consider this issue complete.
+      value: |
+        - [ ] Bug is resolved and cannot be reproduced.
+        - [ ] Automated/manual tests pass.
+    validations:
+      required: true

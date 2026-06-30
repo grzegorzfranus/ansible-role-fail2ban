@@ -1,0 +1,44 @@
+---
+name: Task
+description: Create a structured task issue
+title: "chore: [Brief Description of Task]"
+labels: ["chore"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 📋 Structured Task
+        Define a generic maintenance task or chore.
+  - type: textarea
+    id: what
+    attributes:
+      label: "1. What"
+      description: Description of the task.
+      placeholder: "Describe the task..."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "2. Why"
+      description: Motivation and context.
+      placeholder: "Motivation and context..."
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: "3. Value"
+      description: Business or technical value.
+      placeholder: "Technical or business value..."
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: "4. Acceptance Criteria"
+      description: Criteria that must be met to consider this issue complete.
+      value: |
+        - [ ] Criteria 1
+    validations:
+      required: true

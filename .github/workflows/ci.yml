@@ -139,7 +139,7 @@ jobs:
   # ================================================================
   ci:
     needs: [branch-name-lint, pr-title-lint]
-    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-ci.yml@main
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@main
     with:
       molecule-distros: '["ubuntu2404", "ubuntu2204", "debian12", "debian11", "rockylinux9"]'
 
@@ -152,7 +152,7 @@ jobs:
   # one. This implements the two-tier gate pattern.
   # ================================================================
   merge-check:
-    name: "Merge Check"
+    name: "Merge Check Gate"
     needs: [branch-name-lint, pr-title-lint, ci]
     if: always()
     runs-on: ubuntu-latest
