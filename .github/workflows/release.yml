@@ -11,14 +11,9 @@ permissions:
   statuses: write
 
 jobs:
-  # ================================================================
-  # 1. RELEASE PLEASE
-  # ----------------------------------------------------------------
-  # Runs googleapis/release-please-action to check for Conventional
-  # Commits and create a Release PR.
-  # ================================================================
+  # Analyze Conventional Commits to manage release PR, Git tags, and GitHub releases
   release-please:
-    name: "Release Please"
+    name: "Run Release Please"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -26,18 +21,13 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
     steps:
       - name: "Run Release Please"
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # ================================================================
-  # 2. VALIDATE RELEASE PR
-  # ----------------------------------------------------------------
-  # Validates the Release PR metadata (such as meta/main.yml)
-  # before merging.
-  # ================================================================
+  # Validate Release PR branch and set "Merge Check" status via GitHub API
   validate-release-pr:
     name: "Validate Release PR"
     needs: [release-please]
@@ -45,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: "Get Release PR details"
+      - name: "Retrieve Release PR Details"
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,15 +53,15 @@ jobs:
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: "Checkout Release PR branch"
-        uses: actions/checkout@v6
+      - name: "Checkout Release PR Branch"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: release-please--branches--main
 
       - name: "Install yamllint"
         run: pip install yamllint
 
-      - name: "Lint YAML files"
+      - name: "Validate YAML Syntax"
         run: yamllint .
 
       - name: "Validate Galaxy metadata (meta/main.yml)"
@@ -101,26 +91,22 @@ jobs:
           print('Galaxy metadata validation passed')
           "
 
-      - name: "Set Merge Check status on PR"
+      - name: "Publish Merge Check Status"
         env:
           GH_TOKEN: ${{ github.token }}
           PR_SHA: ${{ steps.pr.outputs.sha }}
         run: |
           gh api "repos/${{ github.repository }}/statuses/$PR_SHA" \
             -f state=success \
-            -f context="Merge Check" \
+            -f context="Merge Check Gate" \
             -f description="All validations passed (Release PR)"
           echo "Set 'Merge Check' status on commit $PR_SHA"
 
-  # ================================================================
-  # 3. PUBLISH TO ANSIBLE GALAXY
-  # ----------------------------------------------------------------
-  # Triggers when a new release is created (when Release PR is merged).
-  # ================================================================
+  # Publish role to Ansible Galaxy on release creation
   publish-to-galaxy:
     name: "Publish to Galaxy"
     needs: [release-please]
     if: needs.release-please.outputs.release_created == 'true'
-    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-publish-galaxy.yml@main
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-publish.yml@main
     secrets:
       galaxy-api-key: ${{ secrets.GALAXY_API_KEY }}
