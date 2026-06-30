@@ -12,10 +12,12 @@ galaxy_info:
   platforms:
     - name: Ubuntu
       versions:
+        - "resolute"
         - "noble"
         - "jammy"
     - name: Debian
       versions:
+        - "trixie"
         - "bookworm"
         - "bullseye"
     - name: EL
