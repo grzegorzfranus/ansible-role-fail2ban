@@ -1,41 +1,60 @@
 ---
 name: "Release"
+run-name: "Release: ${{ github.ref_name }} by @${{ github.actor }}"
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
-  statuses: write
+  contents: read
 
 jobs:
-  # Analyze Conventional Commits to manage release PR, Git tags, and GitHub releases
+  # ================================================================
+  # 1. RELEASE PLEASE
+  # ----------------------------------------------------------------
+  # Analyzes Conventional Commits since last release and creates
+  # or updates a Release PR. When the Release PR is merged, it
+  # creates a Git tag and GitHub Release automatically.
+  # ================================================================
   release-please:
-    name: "Run Release Please"
+    name: "📝 Run Release Please"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       prs_created: ${{ steps.release.outputs.prs_created }}
       release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - name: "Run Release Please"
+      - name: "📝 Run Release Please"
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Validate Release PR branch and set "Merge Check" status via GitHub API
+  # ================================================================
+  # 2. VALIDATE RELEASE PR
+  # ----------------------------------------------------------------
+  # Runs CI checks on the Release PR branch and sets the required
+  # "Merge Check" commit status via the GitHub API. This is needed
+  # because PRs created by GITHUB_TOKEN do not trigger pull_request
+  # events in other workflows.
+  # ================================================================
   validate-release-pr:
-    name: "Validate Release PR"
+    name: "🔍 Validate Release PR"
     needs: [release-please]
     if: needs.release-please.outputs.prs_created == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: read
     steps:
-      - name: "Retrieve Release PR Details"
+      - name: "🔍 Retrieve Release PR Details"
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
@@ -53,18 +72,19 @@ jobs:
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: "Checkout Release PR Branch"
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: "🔍 Checkout Release PR Branch"
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           ref: release-please--branches--main
+          persist-credentials: false
 
-      - name: "Install yamllint"
-        run: pip install yamllint
+      - name: "🔍 Validate YAML Syntax"
+        run: pipx run yamllint .
 
-      - name: "Validate YAML Syntax"
-        run: yamllint .
+      - name: "🔍 Validate GitHub Actions"
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
-      - name: "Validate Galaxy metadata (meta/main.yml)"
+      - name: "🔍 Validate Galaxy Metadata"
         run: |
           if [ ! -f meta/main.yml ]; then
             echo "::error::meta/main.yml is missing"
@@ -91,7 +111,7 @@ jobs:
           print('Galaxy metadata validation passed')
           "
 
-      - name: "Publish Merge Check Status"
+      - name: "✅ Publish Merge Check Status"
         env:
           GH_TOKEN: ${{ github.token }}
           PR_SHA: ${{ steps.pr.outputs.sha }}
@@ -102,11 +122,13 @@ jobs:
             -f description="All validations passed (Release PR)"
           echo "Set 'Merge Check' status on commit $PR_SHA"
 
-  # Publish role to Ansible Galaxy on release creation
+  # ================================================================
+  # 3. PUBLISH TO ANSIBLE GALAXY
+  # ================================================================
   publish-to-galaxy:
     name: "Publish to Galaxy"
     needs: [release-please]
     if: needs.release-please.outputs.release_created == 'true'
-    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-publish.yml@main
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-publish.yml@v3.0.1
     secrets:
       galaxy-api-key: ${{ secrets.GALAXY_API_KEY }}
