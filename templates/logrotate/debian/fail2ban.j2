@@ -24,9 +24,11 @@
   # Copy and truncate instead of moving log files
   copytruncate
   {% endif %}
+  {% if fail2ban_logrotate_options.dateext | default(true) %}
   # Add date to name of archive log files
   dateext
-  dateformat .%Y-%m-%d
+  dateformat {{ fail2ban_logrotate_options.dateformat | default('.%Y-%m-%d') }}
+  {% endif %}
   # Archive log directory path
   olddir {{ fail2ban_logrotate_options.archive_directory_path }}
   # Run postrotate scripts if required

@@ -54,6 +54,7 @@ argument_specs:
           nocreate: false
           copytruncate: false
           dateext: true
+          dateformat: ".%Y-%m-%d"
         options:
           archive_directory_path:
             description: "Directory where archived logs will be stored"
@@ -84,6 +85,9 @@ argument_specs:
           dateext:
             description: "Add date extension to rotated logs"
             type: bool
+          dateformat:
+            description: "Date suffix appended to rotated log filenames when dateext is enabled"
+            type: str
 
       # Daemon Configuration
       fail2ban_socket:

@@ -68,6 +68,8 @@ fail2ban_logrotate_options:
   copytruncate: false
   # Add date extension to rotated logs
   dateext: true
+  # Date suffix appended to rotated log filenames when dateext is enabled
+  dateformat: ".%Y-%m-%d"
 
 # -----------------------------------------------------------------------------
 # 3. Daemon Configuration
