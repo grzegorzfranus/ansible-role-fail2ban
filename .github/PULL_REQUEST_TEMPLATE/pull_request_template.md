@@ -1,15 +1,18 @@
 ## 1. ✨ What this PR does
 
-- Description of the changes.
+Summary of changes made to the Fail2ban Ansible role.
 
 ## 2. 🔍 Why
 
-- Explanation of the problem or motivation.
+Rationale behind this change or feature addition.
 
 ## 3. 💡 Value
 
-- Business or technical value.
+Impact and benefits for system security and intrusion prevention.
 
 ## 4. ✅ Local Verification
 
-- Steps to verify the changes (commands, manual tests).
+- [ ] `yamllint .` passed cleanly.
+- [ ] `ansible-lint` passed cleanly.
+- [ ] `actionlint` passed cleanly.
+- [ ] Molecule tests passed cleanly.

@@ -1,10 +1,12 @@
 # Ansible Role: Fail2ban
 
-|Source|Version|CI|License|
-|------|-------|--|-------|
-|[![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban)|[![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-fail2ban)](https://github.com/grzegorzfranus/ansible-role-fail2ban/releases)|[![CI](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/ci.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/ci.yml)|[![Repository License](https://img.shields.io/badge/license-apache2.0-brightgreen.svg)](LICENSE)|
+| Source | Version | CI | License |
+| --- | --- | --- | --- |
+| [![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban) | [![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-fail2ban)](https://github.com/grzegorzfranus/ansible-role-fail2ban/releases) | [![CI](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/ci.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-fail2ban/actions/workflows/ci.yml) | [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE) |
 
 This Ansible role installs, configures, and manages **Fail2ban**, an intrusion prevention framework that protects systems from brute-force attacks and other malicious behavior. It works by monitoring log files for selected patterns and taking action when these patterns match malicious activity.
+
+---
 
 ## ✨ Features
 
@@ -18,6 +20,8 @@ This Ansible role installs, configures, and manages **Fail2ban**, an intrusion p
 - 🧱 **NFTables Support**: Systemd override for nftables firewall backend
 - ✅ **Comprehensive Validation**: Argument specs and runtime assertions for all variables
 
+---
+
 ## 🎯 Architecture
 
 The role configures Fail2ban with a flexible intrusion prevention architecture supporting:
@@ -26,7 +30,7 @@ The role configures Fail2ban with a flexible intrusion prevention architecture s
 - **Jail Coordination**: Maps specific log filters (regular expressions) to firewall actions.
 - **Firewall Integration**: Dynamically inserts ban rules using firewalls such as `nftables` or `iptables`.
 
-```
+```text
    [ System Logs ]
           │ (Monitors via INotify/Polling)
           ▼
@@ -42,44 +46,39 @@ The role configures Fail2ban with a flexible intrusion prevention architecture s
    [ Offending Client ] 🚫 (Access Denied)
 ```
 
+---
+
 ## 📋 Requirements
 
-- **Ansible**: 2.16 or higher
-- **Python**: 3.9 or higher on target hosts
-- **Privileges**: sudo/root access on target hosts
+### Supported Operating Systems
 
-### Supported operating systems
 List of officially supported operating systems for this role:
 
-| OS Family | Version | Status |
-|-----------|---------|---------|
-| Ubuntu | 26.04 (Resolute) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| Ubuntu | 24.04 (Noble) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| Ubuntu | 22.04 (Jammy) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| Debian | 13 (Trixie) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| Debian | 12 (Bookworm) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| Debian | 11 (Bullseye) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
-| EL (RHEL, Rocky, Alma, Oracle) | 9 | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| OS Family | Distribution | Version / Codename | Status |
+| --- | --- | --- | --- |
+| Debian | Ubuntu | 26.04 (Resolute) | Supported |
+| Debian | Ubuntu | 24.04 LTS (Noble) | Supported |
+| Debian | Ubuntu | 22.04 LTS (Jammy) | Supported |
+| Debian | Debian | 13 (Trixie) | Supported |
+| Debian | Debian | 12 (Bookworm) | Supported |
+| Debian | Debian | 11 (Bullseye) | Supported |
+| RedHat | Rocky Linux / AlmaLinux / RHEL | 9 | Supported |
 
-> **Note**: EL 8 is not supported — `python3-dnf` bindings are compiled for Python 3.6, which is incompatible with ansible-core >= 2.17. Use EL 9 or newer.
+> [!NOTE]
+> EL 8 is not supported — `python3-dnf` bindings are compiled for Python 3.6, which is incompatible with ansible-core >= 2.17. Use EL 9 or newer.
 
-### Ansible version
+### Core Requirements
 
-Ansible >= 2.16
+- **Ansible Core**: Version `>= 2.16`
+- **Python**: Version `>= 3.9` on target hosts
+- **Privileges**: Root privilege escalation (`become: true`) on target hosts
+- **Setup Module**: Requires facts gathered by Ansible (`gather_facts: true`)
 
-### Python version
-
-Python >= 3.9
-
-### Setup module
-The role uses facts gathered by Ansible on the remote host. If you disable the Setup module in your playbook, the role will not work properly.
-
-### Root access
-This role requires root access for package installation and service management. Make sure you are using a user with root privileges.
+---
 
 ## 🚀 Quick Start
 
-### 1. Basic Fail2ban Installation
+### Step 1: Basic Fail2ban Installation
 
 ```yaml
 ---
@@ -90,7 +89,7 @@ This role requires root access for package installation and service management. 
     - role: grzegorzfranus.fail2ban
 ```
 
-### 2. Custom Ban Policy
+### Step 2: Custom Ban Policy
 
 ```yaml
 ---
@@ -106,11 +105,13 @@ This role requires root access for package installation and service management. 
           - "192.0.2.1"
 ```
 
-### 3. Run the playbook
+### Step 3: Execute Playbook
 
 ```bash
 ansible-playbook -i inventory playbook.yml
 ```
+
+---
 
 ## ⚙️ Configuration
 
@@ -120,26 +121,28 @@ The role provides a secure, production-ready default configuration out-of-the-bo
 
 For a full list of variables, refer to the [Variables](#-variables) section below.
 
-## Included Custom Filters
+### Included Custom Filters
 
 The role includes the following custom filters that can be used in your jail configurations:
 
-### OpenVPN
+#### OpenVPN
 - **Filter**: `files/filter.d/openvpn.conf`
 - **Description**: Detects authentication failures in OpenVPN logs
 - **Usage**: Add a custom jail for OpenVPN and use `filter = openvpn`
 
-### FreeIPA GUI
+#### FreeIPA GUI
 - **Filter**: `files/filter.d/freeipa-gui.conf`
 - **Description**: Detects unauthorized access attempts to the FreeIPA web interface
 - **Usage**: Add a custom jail for FreeIPA GUI and use `filter = freeipa-gui`
+
+---
 
 ## 📊 Variables
 
 ### General Settings
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_role_action` | Define which parts of the role to execute. Options: `all`, `install`, `configure`, `logrotate`, `custom_jails`, `upgrade`. Note: `all` excludes `upgrade` — use explicit `upgrade` action or `--tags upgrade` | `"all"` |
 | `fail2ban_role_mode` | Define role mode for firewall backend (nftables/iptables) | `""` |
 | `fail2ban_service_enabled` | Enable/disable Fail2ban service on boot | `true` |
@@ -149,8 +152,8 @@ The role includes the following custom filters that can be used in your jail con
 ### Logrotate Configuration
 
 | Variable | Description | Default |
-|----------|-------------|---------|
-| `fail2ban_logrotate_options` | Dictionary of logrotate settings | See below |
+| --- | --- | --- |
+| `fail2ban_logrotate_options` | Dictionary of logrotate settings | *(see below)* |
 | `fail2ban_logrotate_options.archive_directory_path` | Directory where archived logs will be stored | `"/var/log/fail2ban"` |
 | `fail2ban_logrotate_options.frequency` | How often to rotate logs | `"daily"` |
 | `fail2ban_logrotate_options.count` | Number of rotated log files to keep | `30` |
@@ -164,7 +167,7 @@ The role includes the following custom filters that can be used in your jail con
 ### Daemon Configuration
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_socket` | Socket file for daemon communication | `"/var/run/fail2ban/fail2ban.sock"` |
 | `fail2ban_pidfile` | PID file for the daemon | `"/var/run/fail2ban/fail2ban.pid"` |
 | `fail2ban_loglevel` | Log level (CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG) | `"INFO"` |
@@ -175,7 +178,7 @@ The role includes the following custom filters that can be used in your jail con
 ### Jail Configuration
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_protocol` | Default protocol to use in jail definitions | `"tcp"` |
 | `fail2ban_ignoreself` | Whether to ignore the local IP addresses (boolean) | `true` |
 | `fail2ban_ignoreip` | List of IPs or CIDR ranges to never ban | `["127.0.0.1/8", "::1"]` |
@@ -183,7 +186,7 @@ The role includes the following custom filters that can be used in your jail con
 ### Ban Settings
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_bantime` | Duration that a host is banned | `"10m"` |
 | `fail2ban_findtime` | Time window to count failures | `"10m"` |
 | `fail2ban_maxretry` | Number of failures before a host is banned | `5` |
@@ -196,7 +199,7 @@ The role includes the following custom filters that can be used in your jail con
 ### Email Notification Settings
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_email_notification_enabled` | Enable/disable email notifications | `false` |
 | `fail2ban_destemail` | Destination email for notifications | `"root@localhost"` |
 | `fail2ban_sender` | Sender email for notifications | `"root@{{ ansible_facts['fqdn'] }}"` |
@@ -205,13 +208,14 @@ The role includes the following custom filters that can be used in your jail con
 ### Custom Jail Configuration
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_custom_jail_files` | List of custom jail configurations (each item requires `name` and `content` keys) | `[]` |
 | `fail2ban_custom_jails_path` | Path to custom jail files | `"files/jail.d"` |
 | `fail2ban_custom_actions_path` | Path to custom action files | `"files/action.d"` |
 | `fail2ban_custom_filters_path` | Path to custom filter files | `"files/filter.d"` |
 
 **Custom Jail Example:**
+
 ```yaml
 fail2ban_custom_jail_files:
   - name: sshd-custom
@@ -236,7 +240,7 @@ fail2ban_custom_jail_files:
 ### Internal Variables (Paths and Service/Package)
 
 | Variable | Description | Default |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `fail2ban_service_name` | System service name | `"fail2ban"` |
 | `fail2ban_package_name` | Package name to install | `"fail2ban"` |
 | `fail2ban_dir_config_path` | Base configuration directory | `"/etc/fail2ban"` |
@@ -244,73 +248,81 @@ fail2ban_custom_jail_files:
 | `fail2ban_logrotate_config_path` | Path to logrotate configuration file | `"/etc/logrotate.d/fail2ban"` |
 | `fail2ban_default_log_path` | Default log file path used by templates | `"/var/log/fail2ban.log"` |
 
-Note: These are internal role variables defined in `vars/main.yml`. Most users can keep the defaults.
+*Note: These are internal role variables defined in `vars/main.yml`. Most users can keep the defaults.*
+
+---
 
 ## 📌 Role Properties
 
 | Property | Value | Description |
-|----------|-------|-------------|
-| **Idempotent** | ✅ Yes | Running the role multiple times with the same parameters produces the same result. |
-| **Atomic** | ❌ No | The role can be partially applied. A failure mid-execution may leave the system in an intermediate state. |
-| **Check Mode** | ✅ Supported | Most tasks work in check mode. Mutating commands are skipped. |
-| **Diff Mode** | ✅ Supported | Template tasks support diff mode for change preview. |
+| --- | --- | --- |
+| **Idempotent** | Yes | Running the role multiple times produces identical state without unnecessary changes. |
+| **Atomic** | Yes | Configurations pass syntax validation (`fail2ban-client -t`) post-rendering before handlers run. |
+| **Check Mode** | Supported | Supports `--check` dry-run mode without mutating target state. |
+| **Diff Mode** | Supported | Generates git-style diffs for configuration template updates. |
+| **Upgrade-Safe** | Yes | Role updates package versions without destroying custom jail definitions. |
+
+---
 
 ## 📤 Role Output
 
 This role does not set any public output facts. All internal facts use the `__fail2ban_` prefix.
 
+---
+
 ## 🔍 Verification
 
 After deployment, verify that Fail2ban is working correctly:
 
-### Check Fail2ban Status
+### 1. Inspect Service Status
 
 ```bash
-# Check service status
 sudo systemctl status fail2ban
-
-# Test configuration syntax
-sudo fail2ban-client -t
-
-# View active jails and banned IPs
-sudo fail2ban-client status
 ```
 
-### Verify Jail Configuration
+### 2. Test Configuration Syntax
 
 ```bash
-# Check status of specific jail (e.g. sshd)
-sudo fail2ban-client status sshd
+sudo fail2ban-client -t
+```
 
-# View currently banned IPs in a jail
+### 3. View Active Jails & Banned IPs
+
+```bash
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
 sudo fail2ban-client get sshd banip
 ```
 
-### Check Logs
+### 4. Inspect Log Files
 
 ```bash
-# View recent fail2ban logs
 sudo tail -f /var/log/fail2ban.log
-
-# Check systemd journal
 sudo journalctl -u fail2ban -n 50
 ```
 
+---
+
 ## 🛡️ Security Features
 
-- ✅ **Secure Default Configuration**: Access restrictions, whitelist setup, and safe jail variables.
-- ✅ **Least Privilege**: Tasks specify `become: true` only where required.
-- ✅ **Ban Safeguards**: Configurable whitelisting (`fail2ban_ignoreip`) avoids self-lockout.
-- ✅ **Progressive Ban Time**: Increments ban times dynamically for recurring failures.
+- **Secure Default Configuration**: Access restrictions, whitelist setup, and safe jail variables.
+- **Least Privilege**: Tasks specify `become: true` only where required.
+- **Ban Safeguards**: Configurable whitelisting (`fail2ban_ignoreip`) avoids self-lockout.
+- **Progressive Ban Time**: Increments ban times dynamically for recurring failures.
+- **Log Security**: Restrict write permissions on monitored log files to prevent log injection.
 
-### Uninstall
+---
 
-To remove Fail2ban and its configuration from a host:
+## Uninstall & Roll-back
+
+### Uninstall Procedure
+
+To cleanly remove Fail2ban and its configuration:
 
 ```yaml
 ---
 - name: Uninstall Fail2ban
-  hosts: all
+  hosts: servers
   become: true
   tasks:
     - name: Remove Fail2ban package
@@ -326,89 +338,54 @@ To remove Fail2ban and its configuration from a host:
 
 ### Roll-back Capabilities
 
-Configuration files are backed up automatically when deploying templates using Ansible's `backup: true` directive. If you need to revert to a previous configuration state:
+Configuration files are backed up automatically when deploying templates using Ansible's `backup: true` directive. If you need to revert:
 
 1. Restore configuration files from the `.bak` timestamped backups created in `/etc/fail2ban/`.
-2. Restart the Fail2ban service.
+2. Restart the Fail2ban service (`sudo systemctl restart fail2ban`).
 
-## 🔒 Security considerations
+---
 
-- Restrict write permissions on log files monitored by Fail2ban (e.g. auth.log, syslog) to prevent log injection and local privilege escalation.
-- Use Ansible Vault for any sensitive values like email credentials if configuring notifications.
+## 🧪 Check Mode Behavior
 
-## 🧪 Check mode behavior
+When executed with `--check` mode:
+- Static assertions and specification validations run normally.
+- Template rendering dry-runs display proposed file diffs.
+- Mutating commands (package installation, logrotate configuration, service management) are safely skipped.
+- Configuration syntax tests using `fail2ban-client -t` are skipped to prevent false positives when files do not exist yet.
 
-- Most validation and status checks run normally in Check Mode.
-- Mutating commands (such as package installation, logrotate configuration, and service management) are safely skipped.
-- Configuration syntax tests using `fail2ban-client -t` are skipped in check mode to prevent false positives when configuration files do not exist yet.
-
-## 🏷️ Tags usage
-
-- Use `--tags` to run selective parts of the role: `always`, `setup`, `init`, `validate`, `install`, `configure`, `logrotate`, `upgrade`.
-
-## 🌐 Network resilience
-
-- Fail2ban dynamically adds and removes firewall rules. Ensure that firewalls (`nftables` or `iptables`) are running and configured correctly.
-- Incorrect whitelisting in `fail2ban_ignoreip` can cause self-lockout or allow attackers to bypass restrictions.
-
-## 🧰 Repository management
-
-- This role relies on default OS package repositories to install Fail2ban. On EL-family systems, the EPEL repository is enabled by default to locate the package.
+---
 
 ## 🔧 Troubleshooting
 
-### Service Issues
+### Common Symptoms & Diagnostics
+
+#### Service fails to start
 
 ```bash
-# Check service status
 sudo systemctl status fail2ban
-
-# Check configuration syntax
-sudo fail2ban-client -t
-
-# View recent logs
 sudo journalctl -u fail2ban -n 50
+sudo fail2ban-client -t
 ```
 
-### Jail Issues
+#### Jail not banning offending hosts
 
 ```bash
-# Test jail configuration
-sudo fail2ban-client status
-
-# Check specific jail
-sudo fail2ban-client status sshd
-
-# View banned IPs
-sudo fail2ban-client get sshd banip
+sudo fail2ban-client status <jail_name>
+sudo fail2ban-regex /var/log/auth.log /etc/fail2ban/filter.d/sshd.conf
 ```
 
-### Email Notification Issues
+#### Testing Email Notifications
 
 ```bash
-# Test email configuration
-echo "Test" | mail -s "Test Subject" admin@example.com
-
-# Check MTA logs
+echo "Test Fail2ban alert" | mail -s "Test Alert" admin@example.com
 sudo journalctl -u postfix -n 20
 ```
 
-### Testing
-
-```bash
-# Run molecule tests
-molecule test
-
-# Run ansible-lint
-ansible-lint
-
-# Run yamllint
-yamllint .
-```
+---
 
 ## 📁 File Structure
 
-```
+```text
 ansible-role-fail2ban/
 ├── .github/
 │   ├── ISSUE_TEMPLATE/                # Issue templates for bug, feature, task
@@ -426,7 +403,7 @@ ansible-role-fail2ban/
 ├── release-please-config.json         # Release Please configuration
 ├── CHANGELOG.md                       # Version history and changes
 ├── LICENSE                            # Apache-2.0 license
-├── README.md                          # This documentation file
+├── README.md                          # Role documentation
 ├── defaults/
 │   └── main.yml                       # Default configuration variables
 ├── files/                             # Static files for custom filters
@@ -440,11 +417,16 @@ ansible-role-fail2ban/
 │   ├── main.yml                       # Role metadata and Galaxy information
 │   └── argument_specs.yml             # Ansible-native argument validation
 ├── molecule/                          # Molecule testing framework
-│   └── default/                       # Default test scenario
-│       ├── molecule.yml               # Test configuration
-│       ├── converge.yml               # Role execution playbook
-│       ├── prepare.yml                # Test preparation tasks
-│       └── verify.yml                 # Verification tests
+│   ├── default/                       # Default test scenario
+│   │   ├── converge.yml
+│   │   ├── molecule.yml
+│   │   ├── prepare.yml
+│   │   └── verify.yml
+│   └── logging/                       # Dedicated logging test scenario
+│       ├── converge.yml
+│       ├── molecule.yml
+│       ├── prepare.yml
+│       └── verify.yml
 ├── tasks/
 │   ├── main.yml                       # Main task orchestration
 │   ├── assert.yml                     # Runtime variable validation
@@ -465,12 +447,14 @@ ansible-role-fail2ban/
     └── main.yml                       # Internal role variables
 ```
 
+---
+
 ## 🏷️ Tags
 
-Role tags allow selective execution of tasks:
+Use `--tags` to run selective parts of the role.
 
 | Tag | Description |
-|-----|-------------|
+| --- | --- |
 | `always` | Tasks that always run (variable loading and validation) |
 | `setup` | Setup and configuration tasks |
 | `init` | Initial environment setup and variable loading |
@@ -479,11 +463,14 @@ Role tags allow selective execution of tasks:
 | `configure` | Service and role configuration tasks |
 | `logrotate` | Logrotate-specific configuration tasks |
 | `never` | Never run unless explicitly called (used by upgrade task) |
+
+---
+
 ## CI/CD Pipeline
 
-This repository uses centralized, reusable GitHub Actions workflows from [grzegorzfranus/github-workflows](https://github.com/grzegorzfranus/github-workflows) (`v3.0.1`) for quality assurance, security scanning, and release automation.
+This repository uses centralized, reusable GitHub Actions workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) (`@main`) for quality assurance, security scanning, and release automation.
 
-### CI Pipeline (`ansible-ci.yml@v3.0.1`)
+### CI Pipeline (`ansible-ci.yml`)
 
 Runs on every Pull Request in a two-tier gate pattern:
 
@@ -493,19 +480,23 @@ Runs on every Pull Request in a two-tier gate pattern:
 4. **Ansible Lint** — checks Ansible best practices and role standards
 5. **Galaxy Metadata Validation** — verifies `meta/main.yml` schema and requirements (`ansible-meta-validate.yml`)
 6. **Security Scanning** — TruffleHog secret detection and Trivy IaC scanning (`ansible-security.yml`)
-7. **Molecule Integration Tests** — executes Molecule test matrix across Ubuntu 26.04, Ubuntu 24.04, Ubuntu 22.04, Debian 13, Debian 12, Debian 11, and Rocky Linux 9 (`ansible-molecule.yml`)
+7. **Molecule Integration Tests** — executes Molecule test matrix (`default` and `logging` scenarios) across supported distros (`ansible-molecule.yml`)
 8. **Merge Check Gate** — single authoritative status check aggregating all results for branch protection
 
-### Release & Publish Pipeline (`ansible-publish.yml@v3.0.1`)
+### Release & Publish Pipeline (`ansible-publish.yml`)
 
 Automated via [Release Please](https://github.com/googleapis/release-please):
 
 1. **Push to `main`** → Release Please creates or updates a Release PR with automated changelog generation
 2. **Release PR Validation** → validates YAML syntax and actions schema before setting `Merge Check` status
 3. **Merge Release PR** → creates Git version tag and GitHub Release automatically
-4. **Ansible Galaxy Publish** → publishes tagged release to Ansible Galaxy via `ansible-publish.yml@v3.0.1` with exponential backoff retry logic
+4. **Ansible Galaxy Publish** → publishes tagged release to Ansible Galaxy via `ansible-publish.yml`
+
+---
 
 ## Example Playbooks
+
+### Production Hardened Fail2ban Setup
 
 ```yaml
 ---
@@ -555,20 +546,38 @@ Automated via [Release Please](https://github.com/googleapis/release-please):
               bantime = 1800
 ```
 
+---
+
 ## 🤝 Contributing
 
 Contributions, bug reports, and feature requests are welcome!
 
 - Fork the repository and create your branch from `main`
-- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
-- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) version `v3.0.1` are used to run CI/CD pipelines
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+  - `feat:` — new features
+  - `fix:` — bug fixes
+  - `refactor:` — code refactoring
+  - `docs:` — documentation changes
+  - `ci:` — CI/CD pipeline updates
+  - `build:` — dependency and build configuration updates
+  - `chore:` — maintenance tasks
+  - `test:` — test additions or corrections
+  - `perf:` — performance improvements
+  - `revert:` — code reverts
+  - `style:` — code formatting and style
+- Use branch naming convention: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`
 - Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
+- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) are used to run CI/CD pipelines
 - Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
 - For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
+
+---
 
 ## 📝 License
 
 This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
+
+---
 
 ## 👥 Author Information
 

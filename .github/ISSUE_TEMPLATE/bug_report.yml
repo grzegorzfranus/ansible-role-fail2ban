@@ -1,45 +1,44 @@
 ---
-name: Bug report
-description: File a structured bug report
-title: "fix: [Brief Description of Bug]"
-labels: ["bug"]
+name: "🐛 Bug Report"
+description: "Report a bug or unexpected behavior in the Fail2ban Ansible role"
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
-      value: |
-        ### 🧪 Structured Bug Report
-        Thank you for reporting a bug! Please fill out the form sections below.
-  - type: textarea
-    id: what
+      value: "Thank you for taking the time to report an issue!"
+  - type: input
+    id: os_version
     attributes:
-      label: "1. What"
-      description: Describe the bug and what went wrong. Include step-by-step reproduction steps if possible.
-      placeholder: "Describe the bug..."
+      label: "Operating System and Version"
+      description: "Target OS (e.g., Ubuntu 24.04 Noble, Debian 12 Bookworm)"
+      placeholder: "Ubuntu 24.04"
+    validations:
+      required: true
+  - type: input
+    id: ansible_version
+    attributes:
+      label: "Ansible Version"
+      description: "Output of `ansible --version`"
+      placeholder: "core 2.16.0"
     validations:
       required: true
   - type: textarea
-    id: why
+    id: description
     attributes:
-      label: "2. Why"
-      description: Motivation and context (e.g. impact on users, environments affected).
-      placeholder: "Motivation and context..."
+      label: "Bug Description"
+      description: "A clear and concise description of what the bug is."
     validations:
       required: true
   - type: textarea
-    id: value
+    id: expected
     attributes:
-      label: "3. Value"
-      description: Technical value of fixing this issue (e.g., error prevention, stabilizing builds).
-      placeholder: "Technical value of fixing this..."
+      label: "Expected Behavior"
+      description: "What you expected to happen."
     validations:
       required: true
   - type: textarea
-    id: criteria
+    id: logs
     attributes:
-      label: "4. Acceptance Criteria"
-      description: Criteria that must be met to consider this issue complete.
-      value: |
-        - [ ] Bug is resolved and cannot be reproduced.
-        - [ ] Automated/manual tests pass.
-    validations:
-      required: true
+      label: "Relevant Logs / Output"
+      description: "Paste relevant output from `ansible-playbook -vvv` or system log."
+      render: shell
