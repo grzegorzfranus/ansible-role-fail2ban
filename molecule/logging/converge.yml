@@ -1,0 +1,75 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Molecule Convergence Playbook
+# =============================================================================
+
+- name: "🧪 Molecule | Converge"
+  hosts: all
+
+  pre_tasks:
+    - name: "🔄 Converge | Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      changed_when: false
+      when: >
+        ansible_facts['os_family'] == "Debian"
+
+    - name: "⏳ Converge | Wait for systemd to complete initialization"
+      ansible.builtin.systemd:
+        name: multi-user.target
+        state: started
+      register: systemctl_status
+      until: true
+      retries: 30
+      delay: 5
+      when: >
+        ansible_facts['service_mgr'] == 'systemd'
+      changed_when: false
+      failed_when: false
+
+  vars:
+    # Test configuration for Fail2ban role
+    fail2ban_role_action: "all"
+    fail2ban_service_enabled: true
+    fail2ban_configure_logrotate: true
+
+    # Test ban settings
+    fail2ban_bantime: "5m"
+    fail2ban_findtime: "5m"
+    fail2ban_maxretry: 3
+
+    # Override logrotate options with custom archive path and dateformat
+    fail2ban_logrotate_options:
+      archive_directory_path: "/var/log/fail2ban-test/archive"
+      frequency: "daily"
+      count: 7
+      missingok: true
+      compress: true
+      nocreate: false
+      copytruncate: false
+      dateext: true
+      dateformat: "-%Y%m%d"
+
+    # Test custom jails
+    fail2ban_custom_jail_files:
+      - name: sshd-test
+        content: |
+          [sshd-test]
+          enabled = true
+          filter = sshd
+          port = ssh
+          logpath = /var/log/auth.log
+          maxretry = 3
+          bantime = 300
+
+  roles:
+    - role: ../../.. # noqa role-name[path]
+  post_tasks:
+    - name: "📊 Converge | Display role execution summary"
+      ansible.builtin.debug:
+        msg:
+          - "✅ Fail2ban role execution completed"
+          - "🔧 Installation: Completed"
+          - "⚙️ Configuration: Applied"
+          - "📝 Logrotate: Enabled"

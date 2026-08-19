@@ -159,6 +159,7 @@ The role includes the following custom filters that can be used in your jail con
 | `fail2ban_logrotate_options.nocreate` | Don't create new empty log file | `false` |
 | `fail2ban_logrotate_options.copytruncate` | Use copy+truncate instead of move | `false` |
 | `fail2ban_logrotate_options.dateext` | Add date extension to rotated logs | `true` |
+| `fail2ban_logrotate_options.dateformat` | Date suffix appended to rotated log filenames when dateext is enabled | `".%Y-%m-%d"` |
 
 ### Daemon Configuration
 

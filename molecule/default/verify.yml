@@ -109,6 +109,19 @@
         fail_msg: "❌ Custom jail file not found"
         success_msg: "✅ Custom jail file verified"
 
+    - name: Verify | Slurp rendered logrotate configuration
+      ansible.builtin.slurp:
+        src: "/etc/logrotate.d/fail2ban"
+      register: __logrotate_slurp
+
+    - name: Verify | Assert rendered dateformat directive
+      ansible.builtin.assert:
+        that:
+          - "'dateext' in (__logrotate_slurp.content | b64decode)"
+          - "'dateformat .%Y-%m-%d' in (__logrotate_slurp.content | b64decode)"
+        fail_msg: "Rendered logrotate configuration does not contain the expected dateformat directive"
+        success_msg: "Rendered logrotate configuration contains the expected dateformat directive"
+
     - name: "📊 Verify | Show comprehensive verification results"
       ansible.builtin.debug:
         msg: "🎉 All Fail2ban verification checks completed successfully!"

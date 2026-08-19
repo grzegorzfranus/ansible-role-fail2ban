@@ -107,7 +107,10 @@
       - fail2ban_logrotate_options.nocreate is boolean
       - fail2ban_logrotate_options.copytruncate is boolean
       - fail2ban_logrotate_options.dateext is boolean
-    fail_msg: "Invalid logrotate options structure or values"
+      - fail2ban_logrotate_options.dateformat is not defined or
+        (fail2ban_logrotate_options.dateformat is string and
+         fail2ban_logrotate_options.dateformat | length > 0)
+    fail_msg: "Invalid logrotate options structure or values (dateformat must be a non-empty string when provided)"
     success_msg: "Logrotate options are valid"
 
 # Email notification — cross-field logic (only validated when enabled)

@@ -1,0 +1,73 @@
+---
+# =============================================================================
+# Ansible Role: Fail2ban - Molecule Verification Playbook (Logging Scenario)
+# =============================================================================
+
+- name: "🧪 Molecule | Verify Logging & Logrotate Configuration"
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: "🔍 Verify | Check logrotate archive directory exists"
+      ansible.builtin.stat:
+        path: "/var/log/fail2ban-test/archive"
+      register: __verify_archivedir
+
+    - name: "✅ Verify | Assert logrotate archive directory exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_archivedir.stat.exists
+          - __verify_archivedir.stat.isdir
+        fail_msg: "Logrotate archive directory does not exist or is not a directory"
+        success_msg: "Logrotate archive directory exists and is a directory"
+
+    - name: "🔍 Verify | Check logrotate configuration file exists"
+      ansible.builtin.stat:
+        path: "/etc/logrotate.d/fail2ban"
+      register: __verify_logrotate_file
+
+    - name: "✅ Verify | Assert logrotate config file exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_file.stat.exists
+        fail_msg: "Logrotate configuration file does not exist"
+        success_msg: "Logrotate configuration file exists"
+
+    - name: "✅ Verify | Assert logrotate config ownership and mode"
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_file.stat.pw_name == 'root'
+          - __verify_logrotate_file.stat.gr_name == 'root'
+          - __verify_logrotate_file.stat.mode == '0644'
+        fail_msg: "Logrotate configuration file has invalid ownership or permissions"
+        success_msg: "Logrotate configuration file ownership and permissions verified"
+
+    - name: "🔍 Verify | Slurp rendered logrotate configuration"
+      ansible.builtin.slurp:
+        src: "/etc/logrotate.d/fail2ban"
+      register: __verify_logrotate_slurp
+
+    - name: "✅ Verify | Assert rendered dateformat directive"
+      ansible.builtin.assert:
+        that:
+          - "'dateext' in (__verify_logrotate_slurp.content | b64decode)"
+          - "'dateformat -%Y%m%d' in (__verify_logrotate_slurp.content | b64decode)"
+        fail_msg: "Rendered logrotate configuration does not contain the expected dateformat directive"
+        success_msg: "Rendered logrotate configuration contains the expected dateformat directive"
+
+    - name: "🔍 Verify | Validate logrotate dry-run execution"
+      ansible.builtin.command:
+        cmd: "logrotate -d /etc/logrotate.d/fail2ban"
+      register: __verify_logrotate_dryrun
+      changed_when: false
+
+    - name: "✅ Verify | Assert logrotate dry-run succeeded"
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_dryrun.rc == 0
+        fail_msg: "Logrotate dry-run validation failed"
+        success_msg: "Logrotate dry-run validation succeeded"
+
+    - name: "📊 Verify | Display verification summary"
+      ansible.builtin.debug:
+        msg: "🎉 Fail2ban logging scenario verification completed successfully!"
