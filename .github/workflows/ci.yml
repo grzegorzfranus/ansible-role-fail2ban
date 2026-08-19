@@ -1,207 +1,134 @@
 ---
-name: "CI"
-run-name: "CI: ${{ github.event.pull_request.title || github.ref_name }} by @${{ github.actor }}"
+# =============================================================================
+# GitHub Actions Workflow: Continuous Integration
+# =============================================================================
+name: CI
 
-on:
+run-name: "CI [PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}]"
+
+"on":
   pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-permissions:
-  contents: read
-
 jobs:
-  # ================================================================
-  # 1. BRANCH NAME VALIDATION (Pre-hook)
-  # ----------------------------------------------------------------
-  # Enforces Git branch naming conventions. Rejects PR branches
-  # that do not use one of the standard enterprise prefixes.
-  # Runs first to fail fast and save runner execution minutes.
-  # ================================================================
+  # ---------------------------------------------------------------------------
+  # Job 1: Branch Name Lint
+  # ---------------------------------------------------------------------------
   branch-name-lint:
-    name: "🔍 Validate Branch Naming"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: "🔍 Validate branch name"
-        env:
-          BRANCH_NAME: ${{ github.head_ref }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [[ "$EVENT_NAME" != "pull_request" ]]; then
-            {
-              echo "### ✅ Branch Name Validation Skipped"
-              echo "Branch validation is only enforced on Pull Requests."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          REGEX="^(feature|bugfix|fix|hotfix|release|chore|docs|refactor|test|build|ci|perf|revert)/[a-zA-Z0-9-]+$|^release-please--.*$|^dependabot/.+$"
-
-          if [[ ! "$BRANCH_NAME" =~ $REGEX ]]; then
-            echo "::error::Invalid branch name: '$BRANCH_NAME'"
-            {
-              echo "### ❌ Branch Name Validation Failed"
-              echo ""
-              echo "The source branch name **'$BRANCH_NAME'** does not conform to the repository naming conventions."
-              echo ""
-              echo "#### 🧭 Allowed Prefixes"
-              echo "- \`feature/\` (e.g., \`feature/add-workflows\`)"
-              echo "- \`bugfix/\` (e.g., \`bugfix/fix-trufflehog-tag\`)"
-              echo "- \`fix/\` (e.g., \`fix/yaml-formatting-issue\`)"
-              echo "- \`hotfix/\` (e.g., \`hotfix/critical-vulnerability-patch\`)"
-              echo "- \`release/\` (e.g., \`release/v1.0.0\`)"
-              echo "- \`chore/\` (e.g., \`chore/update-readme\`)"
-              echo "- \`docs/\` (e.g., \`docs/update-readme\`)"
-              echo "- \`refactor/\` (e.g., \`refactor/cleanup-matrix\`)"
-              echo "- \`test/\` (e.g., \`test/add-molecule-scenario\`)"
-              echo "- \`build/\` (e.g., \`build/pin-action-versions\`)"
-              echo "- \`ci/\` (e.g., \`ci/harden-actionlint\`)"
-              echo "- \`perf/\` (e.g., \`perf/optimize-caching\`)"
-              echo "- \`revert/\` (e.g., \`revert/revert-12-feature\`)"
-              echo ""
-              echo "#### 💡 How to fix"
-              echo "Rename your branch locally using:"
-              echo "\`\`\`bash"
-              echo "git branch -m <new-name>"
-              echo "git push origin -u <new-name>"
-              echo "\`\`\`"
-              echo "Then close this PR and open a new one with the correct branch name."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-
-          {
-            echo "### ✅ Branch Name Validation Passed"
-            echo "Branch name **'$BRANCH_NAME'** conforms to conventions."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ================================================================
-  # 1b. PR TITLE VALIDATION (Pre-hook)
-  # ----------------------------------------------------------------
-  # Enforces Conventional Commits naming conventions on PR titles.
-  # Runs first to fail fast and save runner execution minutes.
-  # ================================================================
-  pr-title-lint:
-    name: "🔍 Validate PR Title Format"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: "🔍 Validate PR title"
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [[ "$EVENT_NAME" != "pull_request" ]]; then
-            {
-              echo "### ✅ PR Title Validation Skipped"
-              echo "PR title validation is only enforced on Pull Requests."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          REGEX="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+$"
-
-          if [[ ! "$PR_TITLE" =~ $REGEX ]]; then
-            echo "::error::Invalid PR title: '$PR_TITLE'"
-            {
-              echo "### ❌ PR Title Validation Failed"
-              echo ""
-              echo "The Pull Request title **'$PR_TITLE'** does not conform to Conventional Commits."
-              echo ""
-              echo "#### 🧭 Allowed Format"
-              echo "\`<type>(<scope>)!: <description>\` (scope and ! are optional)"
-              echo ""
-              echo "#### 💡 Allowed Types"
-              echo "- \`feat\` — New features"
-              echo "- \`fix\` — Bug fixes"
-              echo "- \`docs\` — Documentation updates"
-              echo "- \`style\` — Code style changes (whitespace, formatting)"
-              echo "- \`refactor\` — Code refactoring without behavior changes"
-              echo "- \`perf\` — Performance improvements"
-              echo "- \`test\` — Test additions or corrections"
-              echo "- \`build\` — Build system or dependency updates"
-              echo "- \`ci\` — CI/CD configurations"
-              echo "- \`chore\` — General maintenance tasks"
-              echo "- \`revert\` — Reverting previous commits"
-              echo ""
-              echo "#### 💡 How to fix"
-              echo "Edit the title of this Pull Request on GitHub to match the specification (e.g., \`feat(ci): add pr title validation\`)."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-
-          {
-            echo "### ✅ PR Title Validation Passed"
-            echo "PR title **'$PR_TITLE'** conforms to Conventional Commits."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ================================================================
-  # 2. CI PIPELINE (Reusable Workflow)
-  # ----------------------------------------------------------------
-  # Calls the centralized Ansible CI workflow which includes:
-  # YAML lint, Ansible lint, TruffleHog security scan, Molecule
-  # tests, and its own internal merge check gate.
-  # ================================================================
-  ci:
-    needs: [branch-name-lint, pr-title-lint]
-    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@v3.0.1
-    with:
-      molecule-distros: '["ubuntu2604", "ubuntu2404", "ubuntu2204", "debian13", "debian12", "debian11", "rockylinux9"]'
-      molecule-scenarios: '["default", "logging"]'
-
-  # ================================================================
-  # 3. MERGE CHECK — Caller-level gate for branch protection
-  # ----------------------------------------------------------------
-  # Aggregates branch name lint + reusable CI results into a
-  # single authoritative status check. Branch protection should
-  # point to THIS merge-check, not the reusable workflow's internal
-  # one. This implements the two-tier gate pattern.
-  # ================================================================
-  merge-check:
-    name: "Merge Check Gate"
-    needs: [branch-name-lint, pr-title-lint, ci]
-    if: always()
+    name: "🌿 Branch Name Lint"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
     steps:
-      - name: "⚙️ Evaluate results"
+      - name: "🔍 Validate branch naming convention"
         env:
-          BRANCH_NAME_LINT_RESULT: ${{ needs.branch-name-lint.result }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          PATTERN='^(feature|bugfix|fix|hotfix|release|chore|docs|refactor|test|build|ci|perf|revert)/[a-zA-Z0-9-]+$|^release-please--.*$|^dependabot/.+$'
+          if [[ ! "$HEAD_REF" =~ $PATTERN ]]; then
+            {
+              echo "### ❌ Branch Name Lint Failed"
+              echo "Branch name \`$HEAD_REF\` does not match the required regex pattern:"
+              echo "\`\`\`"
+              echo "$PATTERN"
+              echo "\`\`\`"
+              echo "Examples of valid branch names:"
+              echo "- \`feature/add-fail2ban-rules\`"
+              echo "- \`dependabot/github_actions/...\`"
+              echo "- \`release-please--branches--main\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo "### ✅ Branch Name Lint Passed"
+            echo "Branch name \`$HEAD_REF\` matches naming rules."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # Job 2: PR Title Lint
+  # ---------------------------------------------------------------------------
+  pr-title-lint:
+    name: "📝 PR Title Lint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: "🔍 Validate PR title format"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+$'
+          if [[ ! "$PR_TITLE" =~ $PATTERN ]]; then
+            {
+              echo "### ❌ PR Title Lint Failed"
+              echo "PR title \`$PR_TITLE\` does not match conventional commits pattern:"
+              echo "\`\`\`"
+              echo "$PATTERN"
+              echo "\`\`\`"
+              echo "Example valid PR title: \`feat: implement fail2ban role with secure defaults\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo "### ✅ PR Title Lint Passed"
+            echo "PR title \`$PR_TITLE\` matches conventional commits pattern."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Reusable Ansible CI Execution
+  # ---------------------------------------------------------------------------
+  ci:
+    name: "🧪 Ansible CI"
+    needs:
+      - branch-name-lint
+      - pr-title-lint
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@main
+    with:
+      molecule-distros: '["ubuntu2604","ubuntu2404","ubuntu2204","debian13","debian12","debian11","rockylinux9"]'
+      molecule-scenarios: '["default","logging"]'
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Merge Check Gate
+  # ---------------------------------------------------------------------------
+  merge-check:
+    name: "Merge Check Gate"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - branch-name-lint
+      - pr-title-lint
+      - ci
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: "🚦 Evaluate CI pipeline results"
+        env:
+          BRANCH_LINT_RESULT: ${{ needs.branch-name-lint.result }}
           PR_TITLE_LINT_RESULT: ${{ needs.pr-title-lint.result }}
           CI_RESULT: ${{ needs.ci.result }}
         run: |
-          echo "Branch Name Lint: $BRANCH_NAME_LINT_RESULT"
-          echo "PR Title Lint:    $PR_TITLE_LINT_RESULT"
-          echo "CI:               $CI_RESULT"
+          {
+            echo "### 📊 Pipeline Results Summary"
+            echo "- Branch Name Lint: **$BRANCH_LINT_RESULT**"
+            echo "- PR Title Lint: **$PR_TITLE_LINT_RESULT**"
+            echo "- Ansible CI: **$CI_RESULT**"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          has_failures=0
-
-          if [[ "$BRANCH_NAME_LINT_RESULT" == "failure" || "$BRANCH_NAME_LINT_RESULT" == "cancelled" ]]; then
-            echo "::error::Branch Name Validation failed or was cancelled"
-            has_failures=1
-          fi
-
-          if [[ "$PR_TITLE_LINT_RESULT" == "failure" || "$PR_TITLE_LINT_RESULT" == "cancelled" ]]; then
-            echo "::error::PR Title Validation failed or was cancelled"
-            has_failures=1
-          fi
-
-          if [[ "$CI_RESULT" == "failure" || "$CI_RESULT" == "cancelled" ]]; then
-            echo "::error::CI pipeline failed or was cancelled"
-            has_failures=1
-          fi
-
-          if [[ "$has_failures" -ne 0 ]]; then
+          if [[ "$BRANCH_LINT_RESULT" == "success" && "$PR_TITLE_LINT_RESULT" == "success" && "$CI_RESULT" == "success" ]]; then
+            echo "#### ✅ All mandatory CI checks passed cleanly." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          else
+            echo "#### ❌ One or more mandatory CI checks failed." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-
-          echo "All checks passed"

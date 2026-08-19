@@ -1,9 +1,7 @@
 ---
+profile: shared
 skip_list:
   - role-name
-
-profile: shared
-
 exclude_paths:
   - molecule/**
   - .github/workflows/**
