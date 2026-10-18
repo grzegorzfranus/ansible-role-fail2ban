@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v1.6.1...v2.0.0) (2026-10-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **platforms:** drop Debian 11 (Bullseye) support ([#28](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/28)) (#29)
+
+### Features
+
+* **platforms:** drop Debian 11 (Bullseye) support ([#28](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/28)) ([#29](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/29)) ([16e88fc](https://github.com/grzegorzfranus/ansible-role-fail2ban/commit/16e88fc35434fe58eede83229f5e597d59488868))
+
 ## [1.6.1](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v1.6.0...v1.6.1) (2026-08-19)
 
 
