@@ -1,0 +1,15 @@
+---
+# ==============================================================================
+# zizmor configuration
+# ==============================================================================
+# The reusable workflows of grzegorzfranus/github-workflows are deliberately
+# referenced at @main, so this role always runs their latest version. Every
+# other action must stay pinned to a full commit SHA.
+# Docs: https://docs.zizmor.sh/audits/#unpinned-uses
+# ==============================================================================
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "grzegorzfranus/github-workflows/*": any
+        "*": hash-pin

@@ -1,7 +1,20 @@
 ---
-# =============================================================================
-# GitHub Actions Workflow: Release Automation & Galaxy Publishing
-# =============================================================================
+# ==============================================================================
+# Workflow: Release
+# ==============================================================================
+# Purpose:
+#   Runs Release Please on every push to main to open or update the release
+#   pull request and to tag releases. When a release pull request is created
+#   or updated, it validates the release branch, sets the Merge Check Gate
+#   commit status on that pull request and deletes the CI runs GitHub holds
+#   for approval there: pull_request runs of a pull request opened or updated
+#   with GITHUB_TOKEN wait for an approval and fail once it is merged. When a
+#   release is created, it publishes the role to Ansible Galaxy through
+#   ansible-publish.yml.
+#
+# Triggers:
+#   push: the main branch
+# ==============================================================================
 name: Release
 
 run-name: "Release [${{ github.ref_name }}]"
@@ -13,6 +26,10 @@ run-name: "Release [${{ github.ref_name }}]"
 
 permissions:
   contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -48,6 +65,7 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.prs_created == 'true' }}
     permissions:
+      actions: write
       contents: read
       statuses: write
       pull-requests: read
@@ -56,8 +74,9 @@ jobs:
         id: resolve_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
         run: |
-          PR_JSON=$(gh pr list --repo "${{ github.repository }}" --head "release-please--branches--main" --json number,headRefOid --limit 1)
+          PR_JSON=$(gh pr list --repo "$GH_REPOSITORY" --head "release-please--branches--main" --json number,headRefOid --limit 1)
           PR_HEAD_SHA=$(echo "$PR_JSON" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data[0]['headRefOid'] if data else '')")
 
           if [[ -z "$PR_HEAD_SHA" ]]; then
@@ -68,13 +87,13 @@ jobs:
           echo "pr_head_sha=$PR_HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: "📥 Checkout Release PR branch"
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5.0.1
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
         with:
           ref: release-please--branches--main
           persist-credentials: false
 
       - name: "🧹 Run YAML Linting"
-        run: pipx run yamllint .
+        run: pipx run yamllint==1.38.0 .
 
       - name: "⚙️ Run Actionlint Validation"
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7  # v2.2.0
@@ -96,15 +115,60 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ steps.resolve_pr.outputs.pr_head_sha }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/statuses/${SHA}" \
+            "/repos/${GH_REPOSITORY}/statuses/${SHA}" \
             -f state='success' \
-            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f target_url="$RUN_URL" \
             -f description='Release PR validation gate passed' \
             -f context='Merge Check Gate'
+
+      - name: "❌ Publish Merge Check Failure Status"
+        if: failure() && steps.resolve_pr.outputs.pr_head_sha != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ steps.resolve_pr.outputs.pr_head_sha }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GH_REPOSITORY}/statuses/${SHA}" \
+            -f state='failure' \
+            -f target_url="$RUN_URL" \
+            -f description='Release PR validation failed. See the linked Actions run.' \
+            -f context='Merge Check Gate'
+
+      - name: "🧹 Delete Approval-Required CI Runs"
+        if: always() && steps.resolve_pr.outputs.pr_head_sha != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+          PR_SHA: ${{ steps.resolve_pr.outputs.pr_head_sha }}
+        run: |
+          # GitHub starts the pull_request runs of a pull request opened or
+          # updated with GITHUB_TOKEN in an approval-required state. Nobody
+          # approves them, so they fail once the release PR is merged; the
+          # Merge Check Gate status set above replaces them.
+          API="repos/$GH_REPOSITORY/actions/runs?branch=release-please--branches--main&event=pull_request&status=action_required"
+          for attempt in $(seq 1 12); do
+            if gh api "$API" --jq ".workflow_runs[] | select(.head_sha == \"$PR_SHA\") | .id" | grep -q .; then
+              break
+            fi
+            echo "No approval-required run for $PR_SHA yet (attempt $attempt/12)"
+            sleep 5
+          done
+          RUN_IDS=$(gh api "$API" --jq '.workflow_runs[].id')
+          for RUN_ID in $RUN_IDS; do
+            gh api --method DELETE "repos/$GH_REPOSITORY/actions/runs/$RUN_ID"
+            echo "Deleted approval-required run $RUN_ID"
+          done
 
   # ---------------------------------------------------------------------------
   # Job 3: Publish Role to Ansible Galaxy
