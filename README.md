@@ -61,11 +61,13 @@ List of officially supported operating systems for this role:
 | Debian | Ubuntu | 22.04 LTS (Jammy) | Supported |
 | Debian | Debian | 13 (Trixie) | Supported |
 | Debian | Debian | 12 (Bookworm) | Supported |
-| Debian | Debian | 11 (Bullseye) | Supported |
 | RedHat | Rocky Linux / AlmaLinux / RHEL | 9 | Supported |
 
 > [!NOTE]
 > EL 8 is not supported — `python3-dnf` bindings are compiled for Python 3.6, which is incompatible with ansible-core >= 2.17. Use EL 9 or newer.
+
+> [!NOTE]
+> Debian 11 (Bullseye) is not supported since its LTS ended on 2026-08-31 — its security updates are moving to archive.debian.org, so packages can no longer be installed reliably from the default sources. Use Debian 12 or newer.
 
 ### Core Requirements
 
