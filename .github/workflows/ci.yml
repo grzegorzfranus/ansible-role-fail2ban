@@ -1,7 +1,17 @@
 ---
-# =============================================================================
-# GitHub Actions Workflow: Continuous Integration
-# =============================================================================
+# ==============================================================================
+# Workflow: CI
+# ==============================================================================
+# Purpose:
+#   Quality gate of this role. Validates the branch name and the pull request
+#   title, lints the workflow files (util-workflow-lint.yml), runs the shared
+#   Ansible CI (ansible-ci.yml: lint, metadata, security, SBOM, Molecule) and
+#   aggregates the results in the Merge Check Gate job required by the
+#   repository ruleset.
+#
+# Triggers:
+#   pull_request: pull requests to main
+# ==============================================================================
 name: CI
 
 run-name: "CI [PR #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}]"
@@ -85,7 +95,19 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
-  # Job 3: Reusable Ansible CI Execution
+  # Job 3: Workflow Lint
+  # ---------------------------------------------------------------------------
+  workflow-lint:
+    name: "🔍 Workflow Lint"
+    needs:
+      - branch-name-lint
+      - pr-title-lint
+    uses: grzegorzfranus/github-workflows/.github/workflows/util-workflow-lint.yml@main
+    with:
+      paths: ""
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Reusable Ansible CI Execution
   # ---------------------------------------------------------------------------
   ci:
     name: "🧪 Ansible CI"
@@ -98,7 +120,7 @@ jobs:
       molecule-scenarios: '["default","logging"]'
 
   # ---------------------------------------------------------------------------
-  # Job 4: Merge Check Gate
+  # Job 5: Merge Check Gate
   # ---------------------------------------------------------------------------
   merge-check:
     name: "Merge Check Gate"
@@ -107,6 +129,7 @@ jobs:
     needs:
       - branch-name-lint
       - pr-title-lint
+      - workflow-lint
       - ci
     if: always()
     permissions:
@@ -116,16 +139,18 @@ jobs:
         env:
           BRANCH_LINT_RESULT: ${{ needs.branch-name-lint.result }}
           PR_TITLE_LINT_RESULT: ${{ needs.pr-title-lint.result }}
+          WORKFLOW_LINT_RESULT: ${{ needs.workflow-lint.result }}
           CI_RESULT: ${{ needs.ci.result }}
         run: |
           {
             echo "### 📊 Pipeline Results Summary"
             echo "- Branch Name Lint: **$BRANCH_LINT_RESULT**"
             echo "- PR Title Lint: **$PR_TITLE_LINT_RESULT**"
+            echo "- Workflow Lint: **$WORKFLOW_LINT_RESULT**"
             echo "- Ansible CI: **$CI_RESULT**"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [[ "$BRANCH_LINT_RESULT" == "success" && "$PR_TITLE_LINT_RESULT" == "success" && "$CI_RESULT" == "success" ]]; then
+          if [[ "$BRANCH_LINT_RESULT" == "success" && "$PR_TITLE_LINT_RESULT" == "success" && "$WORKFLOW_LINT_RESULT" == "success" && "$CI_RESULT" == "success" ]]; then
             echo "#### ✅ All mandatory CI checks passed cleanly." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           else

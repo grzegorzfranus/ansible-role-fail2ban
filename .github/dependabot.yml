@@ -1,22 +1,48 @@
 ---
-# yaml-language-server: $schema=https://json.schemastore.org/dependabot-2.0.json
+# .github/dependabot.yml
+# Dependabot configuration for ansible-role-fail2ban
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
 version: 2
+
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+
+    # ── Schedule ──────────────────────────────────────────────
+    # Weekly scan on Monday mornings (CEST/CET timezone)
+    # Security updates trigger immediately regardless of schedule
     schedule:
       interval: "weekly"
       day: "monday"
       time: "06:00"
       timezone: "Europe/Warsaw"
+
+    # ── Cooldown ─────────────────────────────────────────────
+    # Wait 14 days before proposing updates for newly released versions
+    # Allows community to vet releases and detect supply chain attacks
+    cooldown:
+      default-days: 14
+
+    # ── PR Controls ──────────────────────────────────────────
+    # Limit to 10 open PRs to prevent backlog overwhelming
+    # while not blocking security patches
     open-pull-requests-limit: 10
+
+    # ── Labels ───────────────────────────────────────────────
+    # Auto-label for triage and filtering
     labels:
       - "dependencies"
       - "github-actions"
+
+    # ── Commit Message ───────────────────────────────────────
+    # Conventional Commits format for consistent history
     commit-message:
       prefix: "build"
-      prefix-development: "build"
       include: "scope"
+
+    # ── Grouping ─────────────────────────────────────────────
+    # Group minor/patch updates into single PR to reduce noise
+    # Keep major updates separate for individual review (breaking changes)
     groups:
       minor-and-patch:
         patterns:
@@ -24,3 +50,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+        applies-to: version-updates
+
+    # ── Ignored Updates ──────────────────────────────────────
+    # actions/checkout is deliberately held on the v5 line. From v6 onwards it
+    # writes credentials via an includeIf "gitdir:" directive, which does not
+    # match when a self-hosted runner's _work directory is a symlink, breaking
+    # authentication (actions/checkout#2393, still open). v5.x updates are
+    # still accepted, so security backports on that line keep flowing.
+    ignore:
+      - dependency-name: "actions/checkout"
+        versions: [">= 6"]
