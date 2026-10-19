@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v2.0.2...v2.0.3) (2026-10-19)
+
+
+### CI/CD
+
+* **release:** delete the release PR's CI run before the Merge Check Gate status ([#37](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/37)) ([#38](https://github.com/grzegorzfranus/ansible-role-fail2ban/issues/38)) ([9985d0b](https://github.com/grzegorzfranus/ansible-role-fail2ban/commit/9985d0bcb67378bc697d1afe11f2e1b1a224e59c))
+
 ## [2.0.2](https://github.com/grzegorzfranus/ansible-role-fail2ban/compare/v2.0.1...v2.0.2) (2026-10-18)
 
 
